@@ -8,10 +8,23 @@ import fmtstr
 N_ITER = 10 # set this to a larger number of iterations later or get input
 LEN = 100
 
-binary_name = sys.argv[1]
-binary_input = sys.argv[2]
 
 if __name__ == '__main__':
+
+    binary_name = sys.argv[1]
+
+    # Check valid input
+    if len(sys.argv) != 3:
+        print(f"Invalid input format! Usage: ./fuzzer binary input.txt")
+        sys.exit(1)
+
+    # IF valid, then check given input file, extract
+    try: 
+        binary_input = open(sys.argv[2], "r")
+    except:
+        print(f"Error: Cannot open .txt file")
+        sys.exit(1)
+
 
     LEN = input('Enter number of iterations: ')
 
