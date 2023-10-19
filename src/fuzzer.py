@@ -11,16 +11,15 @@ LEN = 100
 
 if __name__ == '__main__':
 
-    binary_name = sys.argv[1]
-
     # Check valid input
     if len(sys.argv) != 3:
         print(f"Invalid input format! Usage: ./fuzzer binary input.txt")
         sys.exit(1)
 
     # IF valid, then check given input file, extract
+    binary_name = sys.argv[1]
     try: 
-        binary_input = open(sys.argv[2], "r")
+        binary_input = open(sys.argv[2], 'r')
     except:
         print(f"Error: Cannot open .txt file")
         sys.exit(1)
