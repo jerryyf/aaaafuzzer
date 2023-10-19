@@ -39,7 +39,7 @@ def checkTypeCSV(sample_binary):
         print(f"YES CSV")
 
     # If load fail, return false
-    except csv.Error:
+    except:
         return False
     
     return True
