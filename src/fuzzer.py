@@ -30,19 +30,18 @@ if __name__ == '__main__':
 
     if checkTypeJson(binary_input):
         print(f"going to assess binary as JSON")
-
     
-    # if checkTypeCSV(binary_input):
-    #     print(f"going to assess binary as CSV")
+    if checkTypeCSV(binary_input):
+        print(f"going to assess binary as CSV")
 
 
 
-    log.info('Trying overflows...')
-    bof.overflow_stdin(binary_name, LEN, N_ITER)
+    # log.info('Trying overflows...')
+    # bof.overflow_stdin(binary_name, LEN, N_ITER)
 
-    log.info('Trying cyclic inputs...')
-    bof.cyclic_stdin(binary_name, LEN, N_ITER)
+    # log.info('Trying cyclic inputs...')
+    # bof.cyclic_stdin(binary_name, LEN, N_ITER)
 
-    log.info('Trying format string vulnerabilities...')
-    fmtstr.find_fmtbuf_stdin(binary_name, N_ITER)
+    # log.info('Trying format string vulnerabilities...')
+    # fmtstr.find_fmtbuf_stdin(binary_name, N_ITER)
 

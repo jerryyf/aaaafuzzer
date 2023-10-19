@@ -2,7 +2,7 @@ import json
 import csv
 
 """
-Helpers for fuzzer, checks if the type of given binary is in JSON format
+Helpers for fuzzer, checks if the type of given input is in JSON format
 
 Argument: sample_binary
 
@@ -22,7 +22,26 @@ def checkTypeJson(sample_binary):
     return True
 
 
+"""
+Helpers for fuzzer, checks if the type of given input is in CSV format
+
+Argument: sample_binary
+
+Returns: True   - If the file type match
+         False  - Otherwise
+"""
+def checkTypeCSV(sample_binary):
+
+    # Read file content from begining, try load by CSV
+    try:
+        # csv.Sniffer().sniff(sample_binary)
+        csv.DictReader(sample_binary)                       ### BUG it check non-csv as csv
+        print(f"YES CSV")
+
+    # If load fail, return false
+    except csv.Error:
+        return False
+    
+    return True
 
 
-# def checkTypeCSV():
-#     # TODO
