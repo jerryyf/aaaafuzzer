@@ -3,6 +3,7 @@
 from pwn import *
 import sys
 import bof
+import time
 import fmtstr
 from checkType import *
 
@@ -21,21 +22,24 @@ if __name__ == '__main__':
     binary_name = sys.argv[1]
     try: 
         binary_input = open(sys.argv[2], 'r')
+
     except:
         print(f"Error: Cannot open .txt file")
         sys.exit(1)
 
-    LEN = input('Enter number of iterations: ')
 
+    # Record the time process start
+    init_time = time.time()
 
     if checkTypeJson(binary_input):
         print(f"going to assess binary as JSON")
     
-    if checkTypeCSV(binary_input):
-        print(f"going to assess binary as CSV")
+    # ## BUG GY
+    # if checkTypeCSV(binary_input):  
+    #     print(f"going to assess binary as CSV")
 
 
-
+    # LEN = input('Enter number of iterations: ')
     # log.info('Trying overflows...')
     # bof.overflow_stdin(binary_name, LEN, N_ITER)
 
@@ -45,3 +49,6 @@ if __name__ == '__main__':
     # log.info('Trying format string vulnerabilities...')
     # fmtstr.find_fmtbuf_stdin(binary_name, N_ITER)
 
+    final_time = time.time()
+
+    print(f"Fuzzer process done in {final_time - init_time} seconds...")
