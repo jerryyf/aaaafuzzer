@@ -14,7 +14,7 @@ def checkTypeJson(sample_binary):
     # Read file content from begining, try load by JSON
     try:
         json.load(sample_binary)
-
+        print(f"The txt is in JSON format...")
     # If load fail, return false
     except:
         return False
