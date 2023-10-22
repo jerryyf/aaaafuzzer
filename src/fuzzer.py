@@ -2,53 +2,39 @@
 
 from pwn import *
 import sys
-import bof
 import time
-import fmtstr
-from checkType import *
+from checkType import checkTypeCSV, checkTypeJson
+from util import usage
+from payloads import *
 
-N_ITER = 10 # set this to a larger number of iterations later or get input
+# number of processes to start
+N_ITER = 10
+
+# length of overflows, cyclics, etc.
 LEN = 100
 
 
 if __name__ == '__main__':
 
     # Check valid input
-    if len(sys.argv) != 3:
-        print(f"Invalid input format! Usage: ./fuzzer binary input.txt")
-        sys.exit(1)
+    usage()
 
     # IF valid, then check given input file, extract
-    binary_name = sys.argv[1]
-    binary_input = sys.argv[2]
-    # try: 
-    #     binary_input = open(sys.argv[2], 'r')
-
-    # except:
-    #     print(f"Error: Cannot open .txt file")
-    #     sys.exit(1)
-
+    binaryfile = sys.argv[1]
+    datafile = sys.argv[2]
 
     # Record the time process start
     init_time = time.time()
 
-    if checkTypeJson(binary_input):
-        print(f"going to assess binary as JSON")
+    if checkTypeJson(datafile):
+        log.info("going to assess binary as JSON")
+        fuzzy_json(datafile, 'bad.txt')
+        sys.exit()
     
-    if checkTypeCSV(binary_input):  
-        print(f"going to assess binary as CSV")
-
-
-    # LEN = input('Enter number of iterations: ')
-    # log.info('Trying overflows...')
-    # bof.overflow_stdin(binary_name, LEN, N_ITER)
-
-    # log.info('Trying cyclic inputs...')
-    # bof.cyclic_stdin(binary_name, LEN, N_ITER)
-
-    # log.info('Trying format string vulnerabilities...')
-    # fmtstr.find_fmtbuf_stdin(binary_name, N_ITER)
-
+    if checkTypeCSV(datafile):  
+        log.info("going to assess binary as CSV")
+        sys.exit()
+    
     final_time = time.time()
 
     print(f"Fuzzer process done in {final_time - init_time} seconds...")
