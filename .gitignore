@@ -1,2 +1,8 @@
+# ignore supplied binaries and inputs
+/binaries
+/inputs
+
+# ignore generated files
+*.txt
 
 __pycache__
