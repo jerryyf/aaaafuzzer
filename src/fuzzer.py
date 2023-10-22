@@ -21,17 +21,17 @@ if __name__ == '__main__':
 
     # IF valid, then check given input file, extract
     binaryfile = sys.argv[1]
-    datafile = sys.argv[2]
+    samplefile = sys.argv[2]
 
     # Record the time process start
     init_time = time.time()
 
-    if checkTypeJson(datafile):
+    if checkTypeJson(samplefile):
         log.info("going to assess binary as JSON")
-        fuzzy_json(datafile, 'bad.txt')
+        fuzzy_json(binaryfile, samplefile, 'bad.txt')
         sys.exit()
     
-    if checkTypeCSV(datafile):  
+    if checkTypeCSV(samplefile):  
         log.info("going to assess binary as CSV")
         sys.exit()
     

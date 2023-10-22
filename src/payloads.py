@@ -10,18 +10,24 @@ def fuzzy_csv(fname:str):
     with open(fname, 'w') as f:
         f.write(bad_csv)
 
-def fuzzy_json(injson:str, outjson:str):
+'''
+Generate and run a JSON bad.txt against binary. Log if vulnerability discovered.
+'''
+def fuzzy_json(binary:str, injson:str, outjson:str):
     with open(injson, 'r') as inf:
         jsondict = json.load(inf)
-        print(jsondict)
+        log.info('JSON file input: ' + str(jsondict))
 
-    with open(outjson, 'w') as outf:
-        # try empty file
-        bad_json = ''
-        # try overflows
-        bad_json = '{"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA": "%p"}'
-        outf.write(bad_json)
-        
+        with open(outjson, 'w') as outf:
+            # try empty file
+            bad_json = '{}'
+
+            # try overflows
+            bad_json = '{"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA": "%p"}'
+            outf.write(bad_json)
+
+    io = process(['./fuzzer.py', f'{binary}', f'{outjson}'])
+    print(io.recvrepeat(timeout=1))
 
 # TODO untested - modified from %hhn to %hn for less int overflows
 '''
