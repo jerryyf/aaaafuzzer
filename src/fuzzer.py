@@ -20,12 +20,13 @@ if __name__ == '__main__':
 
     # IF valid, then check given input file, extract
     binary_name = sys.argv[1]
-    try: 
-        binary_input = open(sys.argv[2], 'r')
+    binary_input = sys.argv[2]
+    # try: 
+    #     binary_input = open(sys.argv[2], 'r')
 
-    except:
-        print(f"Error: Cannot open .txt file")
-        sys.exit(1)
+    # except:
+    #     print(f"Error: Cannot open .txt file")
+    #     sys.exit(1)
 
 
     # Record the time process start
@@ -34,9 +35,8 @@ if __name__ == '__main__':
     if checkTypeJson(binary_input):
         print(f"going to assess binary as JSON")
     
-    # ## BUG GY
-    # if checkTypeCSV(binary_input):  
-    #     print(f"going to assess binary as CSV")
+    if checkTypeCSV(binary_input):  
+        print(f"going to assess binary as CSV")
 
 
     # LEN = input('Enter number of iterations: ')
