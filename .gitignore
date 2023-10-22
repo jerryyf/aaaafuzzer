@@ -3,6 +3,6 @@
 /inputs
 
 # ignore generated files
-*.txt
+bad.txt
 
 __pycache__
