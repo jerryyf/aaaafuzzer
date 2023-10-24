@@ -1,8 +1,11 @@
 from pwn import *
 import json
+import subprocess
+import logging
 
+# config - debug level won't be logged
+logging.basicConfig(filename='/tmp/aaaalog.log', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
-# TODO handle input files for binaries
 
 def fuzzy_csv(fname:str):
     # TODO
@@ -11,23 +14,79 @@ def fuzzy_csv(fname:str):
         f.write(bad_csv)
 
 '''
-Generate and run a JSON bad.txt against binary. Log if vulnerability discovered.
+Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
+
+Returns: the return code of the binary
 '''
-def fuzzy_json(binary:str, injson:str, outjson:str):
+# TODO make a data structure for all bad inputs and iterate through that
+
+def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
+    cmd = f'./{binary}'
+
     with open(injson, 'r') as inf:
         jsondict = json.load(inf)
         log.info('JSON file input: ' + str(jsondict))
 
         with open(outjson, 'w') as outf:
             # try empty file
-            bad_json = '{}'
+            badjson = ''
+            ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
+            if ret.returncode != 0:
+                log.critical('Crashed on empty file')
+                outf.write(badjson)
+            out1 = ret.stdout
+            logging.info('json empty file output:\n' + out1)
 
-            # try overflows
-            bad_json = '{"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA": "%p"}'
-            outf.write(bad_json)
+            # try big json values
+            for k in jsondict:
+                jsondict[k] = cyclic(100)
+            badjson = str(jsondict)
+            log.info(badjson)
+            # run with cyclic(100) values
+            ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
+            if ret.returncode != 0:
+                log.critical('Crashed on cyclic(100)')
+                outf.write(badjson)
+            out2 = ret.stdout
 
-    io = process(['./fuzzer.py', f'{binary}', f'{outjson}'])
-    print(io.recvrepeat(timeout=1))
+            if out2 != out1:
+                # if output message is different, means code flow changed TODO make message easier to read
+                log.info(f'code flow changed - {out1} -> {out2}')
+
+                # try bigger values
+                for k in jsondict:
+                    jsondict[k] = cyclic(10000)
+                badjson = str(jsondict)
+                logging.info(badjson)
+                # run with cyclic(10000) values
+                ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
+                if ret.returncode != 0:
+                    log.critical('Crashed on cyclic(10000)')
+                    outf.write(badjson)
+                out3 = ret.stdout
+
+                log.info('json cyclic(100) values output:\n' + out3)
+
+            if out3 != out2:
+                # if output message is different, means code flow changed
+                log.info(f'code flow changed - {out2} -> {out3}')
+
+                # try bigger values
+                for k in jsondict:
+                    jsondict[k] = cyclic(10000)
+                badjson = str(jsondict)
+                logging.info(badjson)
+                # run with cyclic(10000) values
+                ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
+                if ret.returncode != 0:
+                    log.critical('Crashed on cyclic(10000)')
+                    outf.write(badjson)
+                out4 = ret.stdout
+
+                log.info('json cyclic(10000) values output:\n' + out4)
+
+    return ret.returncode
+
 
 # TODO untested - modified from %hhn to %hn for less int overflows
 '''
@@ -104,33 +163,3 @@ def write_payload_stdin(io: tube, fmtstr_offset: int, target_addr: int, to_write
         logging.error(e)
         pass
 
-'''
-Stdin fuzzing with overflow of A's
-'''
-def overflow_stdin(binary_name:str, len:int, iter:int):
-    # try:
-    for i in range(iter):
-        try:
-            print(f'AAAA {i}')
-            io = process(f'./{binary_name}')
-            io.sendline(b'A' * len)
-            log.info(io.recvline())
-
-        except Exception as e:
-            logging.error(e)
-            pass
-
-'''
-Stdin fuzzing with overflow using cyclic()
-'''
-def cyclic_stdin(binary_name:str, len: int, iter:int):
-    for i in range(iter):
-        try:
-            print(f'cyclic {i}')
-            io = process(f'./{binary_name}')
-            io.sendline(cyclic(len))
-            log.info(io.recvline())
-
-        except Exception as e:
-            logging.error(e)
-            pass
