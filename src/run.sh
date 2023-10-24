@@ -1,0 +1,1 @@
+./fuzzer.py ../binaries/json1 ../binaries/json1.txt
