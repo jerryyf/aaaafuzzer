@@ -15,9 +15,9 @@ def checkTypeJson(sample_binary):
     # Read file content from begining, try load by JSON
     try:
         json.load(sample_binary)
-        print(f"The txt is in JSON format...")
     # If load fail, return false
     except:
+        print(f"Not JSON file...")
         return False
     
     return True
@@ -53,3 +53,8 @@ def checkTypeCSV(sample_binary):
     
     # type check passed, return true
     return True
+
+    # some thinkings on csv exploid:
+    # 1. overflow row, current error gave command not found cyclic at offset 4091 + 4 bytes 
+    # 2. overflow colns
+    # 3. send empty data
