@@ -12,9 +12,8 @@ Returns: True   - If the file type match
 def checkTypeJson(sample_binary):
 
     # Read file content from begining, try load by JSON
-    jsonfile = open(sample_binary, 'r')
     try:
-        json.load(jsonfile)
+        json.load(sample_binary)
         print(f"The txt is in JSON format...")
     # If load fail, return false
     except:
@@ -34,10 +33,8 @@ Returns: True   - If the file type match
 def checkTypeCSV(sample_binary):
 
     # Read file content from begining, try load by CSV
-    csvfile = open(sample_binary, 'r')
-
     try:
-        data = csv.reader(csvfile, delimiter=',') # NOTE assumption that all csv files parsed are delimted with commas
+        data = csv.reader(sample_binary, delimiter=',') # NOTE assumption that all csv files parsed are delimted with commas
         for row in data:
             if len(row) <= 1:                     # NOTE assumption that csv file contains more than 1 column
                 print('Not a CSV')
