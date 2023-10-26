@@ -8,6 +8,7 @@ import fmtstr
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from checkType import *
+from fuzzer_csv import *
 
 N_ITER = 10 # set this to a larger number of iterations later or get input
 LEN = 100
@@ -22,6 +23,7 @@ if __name__ == '__main__':
     # If valid, then check given input file, extract
     try: 
         binary_input = open(sys.argv[2], 'r')
+        # content = binary_input.read()
 
     except:
         print(f"Error: Cannot open .txt file")
@@ -31,10 +33,11 @@ if __name__ == '__main__':
     binary_file = sys.argv[1]
 
     if checkTypeJson(binary_input):
-        print(f"going to assess binary as JSON")
+        log.info("going to assess binary as JSON")
 
     elif checkTypeCSV(binary_input):  
-        print(f"going to assess binary as CSV")
+        fuzz_csv(binary_file, binary_input, 'bad.txt')
+        log.info("going to assess binary as CSV")
 
 
     final_time = time.time()
