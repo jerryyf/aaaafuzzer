@@ -2,6 +2,8 @@ from pwn import *
 import json
 import subprocess
 import logging
+LAGRE_INT = 9999999999
+LARGE_CHR = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog.log', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
@@ -55,8 +57,21 @@ def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
             context.cyclic_alphabet = string.ascii_lowercase
             cycle = 1
             
+            # Try lagre value for key
+            for k in jsondict:
+                if type(jsondict[k]) == int:
+                    jsondict[k] = LAGRE_INT
+                    badjson = str(jsondict).replace("'",'"')
+                outf.write(badjson)
+                log.info(badjson)
+                ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
+                if ret.returncode != 0:
+                    log.critical('Crashed on large int value')
+                    outf.write(badjson)
+            out1 = ret.stdout
+            
             # Try cyclic 10, 100, 1000, 10000, 100000
-            while (cycle <= 5):
+            while (cycle <= 2):
                 cyclic_int = int(math.pow(10, cycle))
                 
                 single_Payload = f"{cyclic_int}: cylic({cyclic_int})"
@@ -100,11 +115,6 @@ def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
                 cycle += 1
                     
     return ret.returncode
-
-def random_Chars(len: int) -> str:
-    all_char = r'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890::::::{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"'
-    
-
 
 
 # TODO untested - modified from %hhn to %hn for less int overflows
