@@ -1,2 +1,4 @@
-binaries/
+src/binaries
+.gdb_history
+bad.txt
 __pycache__
