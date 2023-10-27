@@ -23,7 +23,6 @@ if __name__ == '__main__':
     # If valid, then check given input file, extract
     try: 
         binary_input = open(sys.argv[2], 'r')
-        # content = binary_input.read()
 
     except:
         print(f"Error: Cannot open .txt file")
@@ -31,6 +30,8 @@ if __name__ == '__main__':
         
     init_time = time.time()
     binary_file = sys.argv[1]
+
+    print(f"Fuzzing othis thing...")
 
     if checkTypeJson(binary_input):
         log.info("going to assess binary as JSON")
