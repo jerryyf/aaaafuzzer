@@ -18,6 +18,9 @@ Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.
 
 Returns: the return code of the binary
 '''
+
+
+
 # TODO make a data structure for all bad inputs and iterate through that
 
 def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
@@ -33,6 +36,7 @@ def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
             # shout if current status is different to the previous one
             ret_Status = []
             
+            # [no file(Normal), 10(Normal), 100(Normal), 1000(Nomral), 10000(Invalid)]
             # for storing all cyclic that is used
             # cyclic for now, will add other payload
             payload = []
@@ -48,20 +52,19 @@ def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
             ret_Status.append(out1)
             
             logging.info('json empty file output:\n' + out1)
+            context.cyclic_alphabet = string.ascii_lowercase
             cycle = 1
             
             # Try cyclic 10, 100, 1000, 10000, 100000
             while (cycle <= 5):
                 cyclic_int = int(math.pow(10, cycle))
                 
-             
                 single_Payload = f"{cyclic_int}: cylic({cyclic_int})"
          
                 payload.append(single_Payload)
                 
-                context.cyclic_alphabet = string.ascii_lowercase
                 cyclic_str = cyclic(cyclic_int, alphabet = string.ascii_lowercase)
-
+                
                 for k in jsondict:
                     jsondict[k] = cyclic_str
                 badjson = str(jsondict).replace("'",'"')
@@ -81,75 +84,27 @@ def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
                     continue
                 
                 previous_int = int(math.pow(10, cycle - 1))
-                
                 previous_str = cyclic(previous_int, alphabet = string.ascii_lowercase)
                 
                 prev_Ret = ret_Status[cycle - 1].replace(previous_str, " ")
+                
                 curr_Ret = ret_Status[cycle].replace(cyclic_str, " ")
-                if (prev_Ret == curr_Ret):
-                    log.info("Derek!")
-                
-                
-                if ret_Status[cycle].replace(cyclic_str, "") != ret_Status[cycle - 1].replace(cyclic_str, ""):
+                    
+                if prev_Ret != curr_Ret:
+                    print(f"Changed return status at {cycle}")
+                    prev_Cyc = cyclic_int
+                    curr_Cyc = int(math.pow(10, cycle - 1))
                     log.info(f'code flow changed - {cycle - 1} -> {cycle}')
-                
-                # TODO:
-                # Implement BST, to pin point the cyclic size that causes the overflow.
+                    break;
                 
                 cycle += 1
-                
-            #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # # try big json values
-            # for k in jsondict:
-            #     jsondict[k] = cyclic(100)
-            # badjson = str(jsondict)
-            # log.info(badjson)
-            # # run with cyclic(100) values
-            # ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-            # if ret.returncode != 0:
-            #     log.critical('Crashed on cyclic(100)')
-            #     outf.write(badjson)
-            # out2 = ret.stdout
-
-            # if out2 != out1:
-            #     # if output message is different, means code flow changed TODO make message easier to read
-            #     log.info(f'code flow changed - {out1} -> {out2}')
-
-            #     # try bigger values
-            #     for k in jsondict:
-            #         jsondict[k] = cyclic(10000)
-            #     badjson = str(jsondict)
-            #     logging.info(badjson)
-            #     # run with cyclic(10000) values
-            #     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-            #     if ret.returncode != 0:
-            #         log.critical('Crashed on cyclic(10000)')
-            #         outf.write(badjson)
-            #     out3 = ret.stdout
-
-            #     log.info('json cyclic(100) values output:\n' + out3)
-
-            # if out3 != out2:
-            #     # if output message is different, means code flow changed
-            #     log.info(f'code flow changed - {out2} -> {out3}')
-
-            #     # try bigger values
-            #     for k in jsondict:
-            #         jsondict[k] = cyclic(10000)
-            #     badjson = str(jsondict)
-            #     logging.info(badjson)
-            #     # run with cyclic(10000) values
-            #     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-            #     if ret.returncode != 0:
-            #         log.critical('Crashed on cyclic(10000)')
-            #         outf.write(badjson)
-            #     out4 = ret.stdout
-
-            #     log.info('json cyclic(10000) values output:\n' + out4)
-            #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            
-
+                    
     return ret.returncode
+
+def random_Chars(len: int) -> str:
+    all_char = r'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890::::::{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"{}"'
+    
+
 
 
 # TODO untested - modified from %hhn to %hn for less int overflows
