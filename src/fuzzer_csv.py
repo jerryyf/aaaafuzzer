@@ -57,6 +57,7 @@ def fuzz_csv(binary_file, binary_input, target_output):
     # log.info(f"Binary input file content: {binary_input}")
 
     if fuzz_rows(binary_file, binary_input, target_output):
+        print(f"here")
         log.info(f"Found vulnerability on fuzzing rows!...")
 
     if fuzz_colns(binary_file, binary_input, target_output):
