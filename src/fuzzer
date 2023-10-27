@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from pwn import *
 import sys
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     binary_file = sys.argv[1]
     sample_file_str = sys.argv[2]
 
-    print(f'FUZZZZZZZZZZZZZZZZZZZZZZZZING...............')
+    print(f'Fuzzing this thing.................................')
 
     if checkTypeJson(sample_file):
         log.info("going to assess binary as JSON")
