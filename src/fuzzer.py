@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     if checkTypeJson(samplefile):
         log.info("going to assess binary as JSON")
-        fuzzy_json(binaryfile, samplefile, 'bad.txt')
+        fuzzy_json(binaryfile, samplefile)
         sys.exit()
     
     if checkTypeCSV(samplefile):  

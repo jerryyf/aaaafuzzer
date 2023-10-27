@@ -2,12 +2,13 @@ from pwn import *
 import json
 import subprocess
 import logging
+from harness  import detect_crash
 
 MAX_INT = sys.maxsize
 LARGE_CHAR = cyclic(10000)
 
 # config - debug level won't be logged
-logging.basicConfig(filename='/tmp/aaaalog.log', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
+logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
 
 def fuzzy_csv(binary:str, incsv:str, outjson:str):
@@ -34,21 +35,21 @@ Takes a sample json and mutates only int values with large int values.
 def bigint_value_json(injson:str) -> str:
     with open(injson, 'r') as inf:
         jsondict = json.load(inf)
-        logging.info('JSON file input: ' + str(jsondict))
+        logging.info('JSON sample input: ' + str(jsondict))
         for k in jsondict:
             if type(jsondict[k]) == int:
                 jsondict[k] = MAX_INT
     return str(jsondict).replace("'",'"')
 
-def bigstr_value_json(injson:str, power:int) -> str:
-    cycle = 1
+'''
+Takes sample json, and int power, and fills each value at each key with cyclic(n)
+'''
+def bigstr_value_json(injson:str, n:int) -> str:
     with open(injson, 'r') as inf:
         jsondict = json.load(inf)
         logging.info('JSON sample input: ' + str(jsondict))
 
-    while (cycle <= power):
-        cyclic_int = int(math.pow(10, cycle))
-        cyclic_str = cyclic(cyclic_int, alphabet=string.ascii_lowercase)
+        cyclic_str = cyclic(n, alphabet=string.ascii_lowercase)
 
         for k in jsondict:
             jsondict[k] = cyclic_str
@@ -69,7 +70,7 @@ Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.
 
 Returns: the return code of the binary
 '''
-def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
+def fuzzy_json(binary:str, injson:str) -> bool:
     stdouts = []
     cmd = f'./{binary}'
     context.cyclic_alphabet = string.ascii_lowercase
@@ -77,34 +78,15 @@ def fuzzy_json(binary:str, injson:str, outjson:str) -> bool:
     # try empty file
     badjson = empty_file()
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-    if ret.returncode != 0:
-        log.critical(f'Crashed on empty file - program returned {ret.returncode}')
-        with open(outjson, 'w') as outf:
-            outf.write(badjson)
-    # in any case, add to list of outputs and log
-    stdouts.append(ret.stdout)
-    logging.info('json empty file program output:\n' + ret.stdout)
-
+    detect_crash(ret, badjson)
             
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(injson)
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-    if ret.returncode != 0:
-        log.critical(f'Crashed on large int value - program returned {ret.returncode}')
-        with open(outjson, 'w') as outf:
-            outf.write(badjson)
-    # in any case, add to list of outputs and log
-    stdouts.append(ret.stdout)
-    logging.info('json large value program output:\n' + ret.stdout)
+    detect_crash(ret, badjson)
     
     # try large amount of key:value pairs
     badjson = bigkeys_json(injson, 100000)
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-    if ret.returncode != 0:
-        log.critical(f'Crashed on large amount of key value pairs - program returned {ret.returncode}')
-        with open(outjson, 'w') as outf:
-            outf.write(badjson)
-    # in any case, add to list of outputs and log
-    stdouts.append(ret.stdout)
-    logging.info('json large key value pair program output:\n' + ret.stdout)
+    detect_crash(ret, badjson)
 
