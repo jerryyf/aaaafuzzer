@@ -7,4 +7,5 @@
 # ignore generated files
 bad.txt
 
+# other files
 __pycache__
