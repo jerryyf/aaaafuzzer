@@ -21,6 +21,7 @@ def fuzz_rows(binary_file, binary_input, target_output):
         with open(target_output, 'a') as badcsv:
             badcsv.write(badpayload)
 
+
 def fuzz_colns(binary_file, binary_input, target_output):
     binary_input.seek(0)
     # for i in range(1, len(binary_input.readlines()) + 1):
@@ -38,7 +39,7 @@ def fuzz_colns(binary_file, binary_input, target_output):
 
         # try fuzzing forst column
         for i in range(0, len(first_row)):
-            first_row[i] = first_row[i]*999*10000
+            first_row[i] = first_row[i]*100*100
             # print(f"newrows: {first_row}")
 
         #join the modified contents
@@ -59,17 +60,17 @@ def fuzz_colns(binary_file, binary_input, target_output):
 
 
 
-    # payload = binary_input.readline()
-    # first_row = payload.strip().split(",")
-    # print(f"first row contents: {first_row}")
+    payload = binary_input.readline()
+    first_row = payload.strip().split(",")
+    print(f"first row contents: {first_row}")
 
-    # # try fuzzing forst column
-    # for i in range(0, len(first_row)):
-    #     first_row[i] = first_row[i]*9999999999
-    #     # print(f"1st thing: {first_row[i]}")
+    # try fuzzing forst column
+    for i in range(0, len(first_row)):
+        first_row[i] = first_row[i]*9999999999
+        # print(f"1st thing: {first_row[i]}")
 
-    # badpayload = ",".join(first_row)
-    # print(f"send payload: {badpayload}")
+    badpayload = ",".join(first_row)
+    print(f"send payload: {badpayload}")
 
 
 
