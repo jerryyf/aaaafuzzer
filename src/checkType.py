@@ -10,17 +10,17 @@ Returns: True   - If the file type match
          False  - Otherwise
 """
 def checkTypeJson(sample_binary):
+    sample_binary.seek(0)
 
     # Read file content from begining, try load by JSON
-    jsonfile = open(sample_binary, 'r')
     try:
-        json.load(jsonfile)
-        print(f"The txt is in JSON format...")
+        json.load(sample_binary)
     # If load fail, return false
     except:
         return False
     
     return True
+
 
 
 """
@@ -32,20 +32,28 @@ Returns: True   - If the file type match
          False  - Otherwise
 """
 def checkTypeCSV(sample_binary):
+    sample_binary.seek(0)
 
-    # Read file content from begining, try load by CSV
-    csvfile = open(sample_binary, 'r')
+    # Check type of input file by line and commas counting
+    lines = sample_binary.readlines()
 
-    try:
-        data = csv.reader(csvfile, delimiter=',') # NOTE assumption that all csv files parsed are delimted with commas
-        for row in data:
-            if len(row) <= 1:                     # NOTE assumption that csv file contains more than 1 column
-                print('Not a CSV')
-                return False
-        csvfile.seek(0)
+    commas = lines[0].count(",")
 
-    except:
-    # If load fail, return false
+    # if file has one line only or no commas, return false
+    if len(lines) == 1 or commas == 0:
+        print(f"Not CSV file...")
         return False
-        
+    
+    # compare comma numbers for each line, if not match then retuirn false
+    for l in lines:
+        if l.count(",") != commas:
+            print(f"Not CSV file...")
+            return False
+    
+    # type check passed, return true
     return True
+
+    # some thinkings on csv exploid:
+    # 1. overflow row, current error gave command not found cyclic at offset 4091 + 4 bytes 
+    # 2. overflow colns
+    # 3. send empty data
