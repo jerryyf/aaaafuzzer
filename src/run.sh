@@ -1,6 +1,6 @@
 # test against provided binaries and sample inputs
 
-./fuzzer ../binaries/json1 ../binaries/json1.txt
-./fuzzer ../binaries/json2 ../binaries/json2.txt
-./fuzzer ../binaries/csv1 ../binaries/csv1.txt
-./fuzzer ../binaries/csv2 ../binaries/csv2.txt
+./fuzzer ../assets/json1 ../assets/json1.txt
+./fuzzer ../assets/json2 ../assets/json2.txt
+./fuzzer ../assets/csv1 ../assets/csv1.txt
+./fuzzer ../assets/csv2 ../assets/csv2.txt
