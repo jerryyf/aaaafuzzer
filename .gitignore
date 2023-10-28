@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ignore supplied binaries and inputs
 /binaries
 /src/binaries
@@ -8,4 +9,9 @@
 bad.txt
 
 # other files
+=======
+src/binaries
+.gdb_history
+bad.txt
+>>>>>>> 267e5c4ec13f2e16bcaf35a4d088346e976e3b4f
 __pycache__

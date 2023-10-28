@@ -17,6 +17,7 @@ def checkTypeJson(sample_binary):
         json.load(sample_binary)
     # If load fail, return false
     except:
+        print(f"Not JSON file...")
         return False
     
     return True
