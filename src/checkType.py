@@ -52,8 +52,3 @@ def checkTypeCSV(sample_binary):
     
     # type check passed, return true
     return True
-
-    # some thinkings on csv exploid:
-    # 1. overflow row, current error gave command not found cyclic at offset 4091 + 4 bytes 
-    # 2. overflow colns
-    # 3. send empty data

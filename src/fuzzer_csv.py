@@ -15,7 +15,7 @@ def fuzz_rows(binary_file, binary_input, target_output):
     ret = subprocess.run(binary_file, input=badpayload, stdout=subprocess.PIPE, text=True)
 
     if ret.returncode != 0:
-        log.critical(f"Program crashed, returned {ret.returncode}.")
+        log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details")
         # outf.write(badjson)
         with open(target_output, 'a') as badcsv:
             badcsv.write(badpayload)
@@ -44,7 +44,7 @@ def fuzz_colns(binary_file, binary_input, target_output):
     ret = subprocess.run(binary_file, input=badpayload, stdout=subprocess.PIPE, text=True)
 
     if ret.returncode != 0:
-        log.critical(f"Program crashed, returned {ret.returncode}.")
+        log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details")
         with open(target_output, 'a') as badcsv:
             badcsv.write(badpayload)
 
