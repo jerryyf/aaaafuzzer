@@ -22,6 +22,10 @@ fuzzer for 32 bit binaries
 ## Detail Description (MIDPOINT):
 
 The team mainly target on overflow vulnerabilities for the midpoint.
+Initially, the original payload that we had was to use cyclic and attempting
+to overflow the information space, and we trying that against JSON1 and CSV1.
+However, that did work for JSON2 and CSV2 as we test our payloads againts these
+two binaries.
 
 ### For JSON:
 
