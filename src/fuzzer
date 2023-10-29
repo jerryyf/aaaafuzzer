@@ -41,7 +41,7 @@ if __name__ == '__main__':
     
     elif checkTypeCSV(sample_file):  
         log.info("going to assess binary as CSV")
-        fuzz_csv(binary_file, sample_file, 'bad.txt')
+        fuzz_csv(binary_file, sample_file, '/tmp/bad.txt')
 
 
     final_time = time.time()

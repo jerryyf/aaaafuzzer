@@ -11,8 +11,8 @@ if exit with non-zero code, log the crash type and generate bad.txt
 def detect_crash(proc:CompletedProcess[str], input:str):
     if proc.returncode != 0:
         logging.critical(f'Crashed with input {input}')
-        log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details')
-        with open('bad.txt', 'w') as outf:
+        log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt')
+        with open('/tmp/bad.txt', 'w') as outf:
             outf.write(input)
     # in any case, add to list of outputs and log
     stdouts.append(proc.stdout)
