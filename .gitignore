@@ -1,11 +1,4 @@
-# ignore supplied binaries and inputs
-/binaries
-/src/binaries
-/inputs
-/src/inputs
-
-# ignore generated files
 bad.txt
 
-# other files
 __pycache__
+.gdb_history
