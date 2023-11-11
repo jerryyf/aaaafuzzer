@@ -8,8 +8,11 @@ MAX_INT = sys.maxsize
 LARGE_CHAR = cyclic(10000)
 PAD = "A"
 
+
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
+context.cyclic_alphabet = string.ascii_lowercase
+
 
 def fuzz_rows(binary_file, binary_input, target_output):
     binary_input.seek(0)
@@ -22,7 +25,6 @@ def fuzz_rows(binary_file, binary_input, target_output):
 
     if ret.returncode != 0:
         log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt")
-        # outf.write(badjson)
         with open(target_output, 'a') as badcsv:
             badcsv.write(badpayload)
 
@@ -96,7 +98,7 @@ def bigstr_value_json(injson:str, n:int) -> str:
         jsondict = json.load(inf)
         logging.info('JSON sample input: ' + str(jsondict))
 
-        cyclic_str = cyclic(n, alphabet=string.ascii_lowercase)
+        cyclic_str = cyclic(n)
 
         for k in jsondict:
             jsondict[k] = cyclic_str
@@ -118,20 +120,18 @@ Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.
 Returns: the return code of the binary
 '''
 def fuzzy_json(binary:str, injson:str) -> bool:
-    stdouts = []
     cmd = f'./{binary}'
-    context.cyclic_alphabet = string.ascii_lowercase
-        
+
     # try empty file
     badjson = empty_file()
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
     detect_crash(ret, badjson)
-            
+
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(injson)
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
     detect_crash(ret, badjson)
-    
+
     # try large amount of key:value pairs
     badjson = bigkeys_json(injson, 100000)
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
