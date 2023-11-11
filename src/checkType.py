@@ -1,52 +1,14 @@
-import json
-import csv
+import subprocess
 
-"""
-Helpers for fuzzer, checks if the type of given input is in JSON format
+def check_type(sample_binary_str):
+    cmd = ['file', sample_binary_str]
+    ret = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)
 
-Argument: sample_binary
-
-Returns: True   - If the file type match
-         False  - Otherwise
-"""
-def checkTypeJson(sample_binary):
-    sample_binary.seek(0)
-
-    # Read file content from begining, try load by JSON
-    try:
-        json.load(sample_binary)
-    # If load fail, return false
-    except:
-        return False
-    
-    return True
-
-
-
-"""
-Helpers for fuzzer, checks if the type of given input is in CSV format
-
-Argument: sample_binary
-
-Returns: True   - If the file type match
-         False  - Otherwise
-"""
-def checkTypeCSV(sample_binary):
-    sample_binary.seek(0)
-
-    # Check type of input file by line and commas counting
-    lines = sample_binary.readlines()
-
-    commas = lines[0].count(",")
-
-    # if file has one line only or no commas, return false
-    if len(lines) == 1 or commas == 0:
-        return False
-    
-    # compare comma numbers for each line, if not match then retuirn false
-    for l in lines:
-        if l.count(",") != commas:
-            return False
-    
-    # type check passed, return true
-    return True
+    if 'ASCII text' in ret.stdout:
+        return 'plaintext'
+    if 'CSV ASCII text' in ret.stdout:
+        return 'csv'
+    if 'JSON text data' in ret.stdout:
+        return 'json'
+    if 'HTML document, ASCII text' in ret.stdout:
+        return 'xml'
