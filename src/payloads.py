@@ -2,20 +2,67 @@ from pwn import *
 import json
 import subprocess
 import logging
-from harness  import detect_crash
+from harness import detect_crash
 
 MAX_INT = sys.maxsize
 LARGE_CHAR = cyclic(10000)
+PAD = "A"
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
+def fuzz_rows(binary_file, binary_input, target_output):
+    binary_input.seek(0)
+    payload = binary_input.readline()
 
-def fuzzy_csv(binary:str, incsv:str, outjson:str):
-    # TODO
-    bad_csv = f'header,must,stay,intact\n%p,%p,%p,%p\n{cyclic(100)},{cyclic(200)},{cyclic(300)},{cyclic(400)}'
-    with open(incsv, 'w') as f:
-        f.write(bad_csv)
+    for i in range(0, 100):
+        badpayload = (payload * i * 100)
+
+    ret = subprocess.run(binary_file, input=badpayload, stdout=subprocess.PIPE, text=True)
+
+    if ret.returncode != 0:
+        log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt")
+        # outf.write(badjson)
+        with open(target_output, 'a') as badcsv:
+            badcsv.write(badpayload)
+
+
+def fuzz_colns(binary_file, binary_input, target_output):
+    # read file from begining
+    binary_input.seek(0)
+    lines = [line.rstrip() for line in binary_input]
+
+    # create a list for values going to be modified
+    payload = []
+    for item in lines:
+        first_row = item.strip().split(",")
+
+        # try fuzzing forst column
+        for i in range(0, len(first_row)):
+            first_row[i] = PAD*15
+
+        # join the modified contents
+        badline = ",".join(first_row)
+        payload.append(badline + '\n')
+    
+    badpayload = "".join(payload)
+
+    ret = subprocess.run(binary_file, input=badpayload, stdout=subprocess.PIPE, text=True)
+
+    if ret.returncode != 0:
+        log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt")
+        with open(target_output, 'a') as badcsv:
+            badcsv.write(badpayload)
+
+
+def fuzz_csv(binary_file, binary_input, target_output):
+
+    if fuzz_rows(binary_file, binary_input, target_output):
+        log.info(f"Found vulnerability on fuzzing rows!...")
+
+    if fuzz_colns(binary_file, binary_input, target_output):
+        log.info(f"Found vulnerability on fuzzing columns!...")
+
 
 def empty_file() -> str:
     return ''
@@ -90,3 +137,5 @@ def fuzzy_json(binary:str, injson:str) -> bool:
     ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
     detect_crash(ret, badjson)
 
+def fuzzy_plaintext():
+    pass

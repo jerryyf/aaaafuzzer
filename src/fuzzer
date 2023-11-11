@@ -4,10 +4,9 @@ from pwn import *
 import sys
 import time
 from checkType import checkTypeCSV, checkTypeJson
-from util import usage
+from util import usage, curr_time_taken
 from payloads import *
 from checkType import *
-from fuzzer_csv import *
 
 # number of processes to start
 N_ITER = 10
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     binary_file = sys.argv[1]
     sample_file_str = sys.argv[2]
 
-    print(f'AAAAAAAAfuzzing this thing.................................')
+    print(f'AAAAAAAAfuzzing {binary_file}')
 
     if checkTypeJson(sample_file):
         log.info("going to assess binary as JSON")
@@ -43,9 +42,6 @@ if __name__ == '__main__':
         log.info("going to assess binary as CSV")
         fuzz_csv(binary_file, sample_file, '/tmp/bad.txt')
 
-
-    final_time = time.time()
-
-    print(f"Fuzzer process done in {final_time - init_time} seconds...")
+    print(f"Fuzzer process done in {curr_time_taken(init_time)} seconds...")
 
     sys.exit()

@@ -1,7 +1,9 @@
 from pwn import *
 import math
 from subprocess import CompletedProcess
+from util import curr_time_taken
 
+MAX_RUNTIME = 160
 stdouts = []
 
 '''
@@ -18,8 +20,13 @@ def detect_crash(proc:CompletedProcess[str], input:str):
     stdouts.append(proc.stdout)
     logging.info('Program output:\n' + proc.stdout)
 
-
-# TODO
+'''
+Takes in current time taken; if greater than MAX_RUNTIME exit the program.
+'''
+def max_runtime_kill(curr_time) -> bool:
+    if curr_time_taken(curr_time) >= MAX_RUNTIME:
+        log.info('Max runtime exceeded. Exiting.')
+        sys.exit()
 
 def detect_codeflow_change_json(binary:str, jsondict:dict):
     payload = []

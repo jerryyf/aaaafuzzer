@@ -17,7 +17,6 @@ def checkTypeJson(sample_binary):
         json.load(sample_binary)
     # If load fail, return false
     except:
-        print(f"Not JSON file...")
         return False
     
     return True
@@ -42,13 +41,11 @@ def checkTypeCSV(sample_binary):
 
     # if file has one line only or no commas, return false
     if len(lines) == 1 or commas == 0:
-        print(f"Not CSV file...")
         return False
     
     # compare comma numbers for each line, if not match then retuirn false
     for l in lines:
         if l.count(",") != commas:
-            print(f"Not CSV file...")
             return False
     
     # type check passed, return true
