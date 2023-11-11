@@ -9,8 +9,10 @@ stdouts = []
 '''
 Given a completed process from subprocess.run() and the input given to the program,
 if exit with non-zero code, log the crash type and generate bad.txt
+
+Returns process return code.
 '''
-def detect_crash(proc:CompletedProcess[str], input:str):
+def detect_crash(proc:CompletedProcess[str], input:str) -> int:
     if proc.returncode != 0:
         logging.critical(f'Crashed with input {input}')
         log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt')
@@ -19,6 +21,7 @@ def detect_crash(proc:CompletedProcess[str], input:str):
     # in any case, add to list of outputs and log
     stdouts.append(proc.stdout)
     logging.info('Program output:\n' + proc.stdout)
+    return proc.returncode
 
 '''
 Takes in current time taken; if greater than MAX_RUNTIME exit the program.
