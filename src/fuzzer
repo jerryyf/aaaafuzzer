@@ -5,7 +5,7 @@ import sys
 import time
 from util import usage, curr_time_taken
 from payloads import *
-from checkType import *
+from checktype import *
 
 # number of processes to start
 N_ITER = 10
