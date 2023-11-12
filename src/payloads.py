@@ -1,11 +1,8 @@
 from pwn import *
-import json
 import logging
 from harness import detect_crash
 from util import *
-
-MAX_INT = sys.maxsize
-PAD = "A"
+from mutations import *
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
@@ -36,7 +33,7 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
 
         # try fuzzing first column
         for i in range(0, len(first_row)):
-            first_row[i] = PAD * 15
+            first_row[i] = PAD * 15 # TODO not working with larger ints - not black box
 
         # join the modified contents
         badline = ",".join(first_row)
@@ -58,68 +55,6 @@ def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
         log.info(f"Found vulnerability on fuzzing columns!...")
         return ret
     return ret
-    
-    
-
-def empty_str() -> str:
-    return ''
-
-def empty_json() -> str:
-    return '{}'
-
-def large_str() -> str:
-    return PAD * MAX_INT
-
-'''
-Repeat a file's contents to the power of n.
-'''
-def repeat_sample_input(sample_input, n) -> str:
-    with open(sample_input, 'r') as inf:
-        content = inf.read()
-        for i in range(n):
-            content += content
-    return content
-
-'''
-Generates a string with {} n amount of times.
-'''
-def n_empty_json(n:int) -> str:
-    return '{}' * n
-
-'''
-Takes a sample json and mutates only int values with large int values.
-'''
-def bigint_value_json(injson:str) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for k in jsondict:
-            if type(jsondict[k]) == int:
-                jsondict[k] = MAX_INT
-    return str(jsondict).replace("'",'"')
-
-'''
-Takes sample json, and int power, and fills each value at each key with cyclic(n)
-'''
-def bigstr_value_json(injson:str, n:int) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-
-        cyclic_str = cyclic(n, alphabet=string.ascii_lowercase)
-
-        for k in jsondict:
-            jsondict[k] = cyclic_str
-    return str(jsondict).replace("'",'"')
-
-def bigkeys_json(injson:str, n:str) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for i in range(n):
-            jsondict[str(i)] = str(i) # can make this random chars
-    return str(jsondict).replace("'", '"')
-
 
 
 '''
@@ -175,7 +110,7 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
         return ret
 
     # try mutations on the file
-    badtxt = repeat_sample_input(intxt, 10)
+    badtxt = repeat_sample_input(intxt, 20)
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
     if ret:
