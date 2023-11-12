@@ -35,16 +35,16 @@ if __name__ == '__main__':
     match check_type(sample_file_str):
         case 'plaintext':
             log.info("Detected plaintext file format from given sample input.")
-            if fuzzy_plaintext(binary_file, sample_file_str) == 0:
+            if fuzz_plaintext(binary_file, sample_file_str) == 0:
                 log.warn("No crashes detected.")
         case 'json':
             log.info("Detected JSON file format from given sample input.")
-            if fuzzy_json(binary_file, sample_file_str) == 0:
-
+            if fuzz_json(binary_file, sample_file_str) == 0:
                 log.warn("No crashes detected.")
         case 'csv':
             log.info("Detected CSV file format from given sample input.")
-            fuzz_csv(binary_file, sample_file, '/tmp/bad.txt')
+            if fuzz_csv(binary_file, sample_file, sample_file_str) == 0:
+                log.warn("No crashes detected.")
         case _:
             log.info("Unknown input file format, exiting.")
             sys.exit()

@@ -1,7 +1,5 @@
-from textwrap import TextWrapper
 from pwn import *
 import json
-import subprocess
 import logging
 from harness import detect_crash
 from util import *
@@ -12,23 +10,21 @@ PAD = "A"
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
+# TODO refactor csv
 
-def fuzz_rows(binary_file, binary_input, target_output):
+def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
+    # read file from beginning
     binary_input.seek(0)
     payload = binary_input.readline()
 
     for i in range(0, 100):
         badpayload = (payload * i * 100)
 
-    ret = subprocess.run(binary_file, input=badpayload, stdout=subprocess.PIPE, text=True)
+    cmdret = runfuzz(binary_file, badpayload)
+    ret = detect_crash(cmdret, sample_file_str)
+    return ret
 
-    if ret.returncode != 0:
-        log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt")
-        with open(target_output, 'a') as badcsv:
-            badcsv.write(badpayload)
-
-
-def fuzz_colns(binary_file, binary_input, target_output):
+def fuzz_colns(binary_file, binary_input, sample_file_str):
     # read file from begining
     binary_input.seek(0)
     lines = [line.rstrip() for line in binary_input]
@@ -38,32 +34,32 @@ def fuzz_colns(binary_file, binary_input, target_output):
     for item in lines:
         first_row = item.strip().split(",")
 
-        # try fuzzing forst column
+        # try fuzzing first column
         for i in range(0, len(first_row)):
-            first_row[i] = PAD*15
+            first_row[i] = PAD * 15
 
         # join the modified contents
         badline = ",".join(first_row)
         payload.append(badline + '\n')
     
     badpayload = "".join(payload)
-
-    ret = subprocess.run(binary_file, input=badpayload, stdout=subprocess.PIPE, text=True)
-
-    if ret.returncode != 0:
-        log.critical(f"Program crashed, returned {ret.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt")
-        with open(target_output, 'a') as badcsv:
-            badcsv.write(badpayload)
+    cmdret = runfuzz(binary_file, badpayload)
+    return detect_crash(cmdret, sample_file_str)
 
 
-def fuzz_csv(binary_file, binary_input, target_output):
-
-    if fuzz_rows(binary_file, binary_input, target_output):
+def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
+    ret = fuzz_rows(binary_file, binary_input, sample_file_str)
+    if ret:
         log.info(f"Found vulnerability on fuzzing rows!...")
+        return ret
 
-    if fuzz_colns(binary_file, binary_input, target_output):
+    ret = fuzz_colns(binary_file, binary_input, sample_file_str)
+    if ret:
         log.info(f"Found vulnerability on fuzzing columns!...")
-
+        return ret
+    return ret
+    
+    
 
 def empty_str() -> str:
     return ''
@@ -131,34 +127,37 @@ Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.
 
 Returns: the return code of the binary
 '''
-def fuzzy_json(binary:str, injson:str) -> bool:
+def fuzz_json(binary:str, injson:str) -> bool:
     cmd = f'./{binary}'
 
     # try empty file
     badjson = empty_str()
     cmdret = runfuzz(cmd, badjson)
     ret = detect_crash(cmdret, badjson)
-    if ret != 0:
+    if ret:
         return ret
 
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(injson)
     cmdret = runfuzz(cmd, badjson)
     ret = detect_crash(cmdret, badjson)
-    if ret != 0:
+    if ret:
         return ret
 
     # try large amount of key:value pairs
     badjson = bigkeys_json(injson, 100000)
     cmdret = runfuzz(cmd, badjson)
     ret = detect_crash(cmdret, badjson)
-    if ret != 0:
+    if ret:
         return ret
+    return ret
 
 '''
 Fuzz plaintext with mutated inputs.
+
+Returns: return code of binary
 '''
-def fuzzy_plaintext(binary:str, intxt:str) -> bool:
+def fuzz_plaintext(binary:str, intxt:str) -> int:
     cmd = f'./{binary}'
 
     # try empty file
@@ -172,13 +171,13 @@ def fuzzy_plaintext(binary:str, intxt:str) -> bool:
     badtxt = PAD * 10000
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
-    if ret != 0:
+    if ret:
         return ret
 
     # try mutations on the file
     badtxt = repeat_sample_input(intxt, 10)
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
-    if ret != 0:
+    if ret:
         return ret
     return ret
