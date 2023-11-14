@@ -3,16 +3,12 @@
 from pwn import *
 import sys
 import time
-from checkType import checkTypeCSV, checkTypeJson
-from util import usage
+from util import usage, curr_time_taken
 from payloads import *
-from checkType import *
-from fuzzer_csv import *
+from checktype import *
 
 # number of processes to start
 N_ITER = 10
-# length of overflows, cyclics, etc.
-LEN = 100
 
 if __name__ == '__main__':
 
@@ -33,19 +29,26 @@ if __name__ == '__main__':
     binary_file = sys.argv[1]
     sample_file_str = sys.argv[2]
 
-    print(f'AAAAAAAAfuzzing this thing.................................')
-
-    if checkTypeJson(sample_file):
-        log.info("going to assess binary as JSON")
-        fuzzy_json(binary_file, sample_file_str)
-    
-    elif checkTypeCSV(sample_file):  
-        log.info("going to assess binary as CSV")
-        fuzz_csv(binary_file, sample_file, '/tmp/bad.txt')
+    print(f'AAAAAAAAfuzzing {binary_file}')
 
 
-    final_time = time.time()
+    match check_type(sample_file_str):
+        case 'plaintext':
+            log.info("Detected plaintext file format from given sample input.")
+            if fuzz_plaintext(binary_file, sample_file_str) == 0:
+                log.warn("No crashes detected.")
+        case 'json':
+            log.info("Detected JSON file format from given sample input.")
+            if fuzz_json(binary_file, sample_file_str) == 0:
+                log.warn("No crashes detected.")
+        case 'csv':
+            log.info("Detected CSV file format from given sample input.")
+            if fuzz_csv(binary_file, sample_file, sample_file_str) == 0:
+                log.warn("No crashes detected.")
+        case _:
+            log.info("Unknown input file format, exiting.")
+            sys.exit()
 
-    print(f"Fuzzer process done in {final_time - init_time} seconds...")
+    print(f"Fuzzer process done in {curr_time_taken(init_time)} seconds.")
 
     sys.exit()

@@ -1,68 +1,60 @@
 from pwn import *
-import json
-import subprocess
 import logging
-from harness  import detect_crash
-
-MAX_INT = sys.maxsize
-LARGE_CHAR = cyclic(10000)
+from harness import detect_crash
+from util import *
+from mutations import *
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
+# TODO refactor csv
 
-def fuzzy_csv(binary:str, incsv:str, outjson:str):
-    # TODO
-    bad_csv = f'header,must,stay,intact\n%p,%p,%p,%p\n{cyclic(100)},{cyclic(200)},{cyclic(300)},{cyclic(400)}'
-    with open(incsv, 'w') as f:
-        f.write(bad_csv)
+def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
+    # read file from beginning
+    binary_input.seek(0)
+    payload = binary_input.readline()
 
-def empty_file() -> str:
-    return ''
+    for i in range(0, 100):
+        badpayload = (payload * i * 100)
 
-def empty_json() -> str:
-    return '{}'
+    cmdret = runfuzz(binary_file, badpayload)
+    ret = detect_crash(cmdret, sample_file_str)
+    return ret
 
-'''
-Generates a string with {} n amount of times.
-'''
-def n_empty_json(n:int) -> str:
-    return '{}' * n
+def fuzz_colns(binary_file, binary_input, sample_file_str):
+    # read file from begining
+    binary_input.seek(0)
+    lines = [line.rstrip() for line in binary_input]
 
-'''
-Takes a sample json and mutates only int values with large int values.
-'''
-def bigint_value_json(injson:str) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for k in jsondict:
-            if type(jsondict[k]) == int:
-                jsondict[k] = MAX_INT
-    return str(jsondict).replace("'",'"')
+    # create a list for values going to be modified
+    payload = []
+    for item in lines:
+        first_row = item.strip().split(",")
 
-'''
-Takes sample json, and int power, and fills each value at each key with cyclic(n)
-'''
-def bigstr_value_json(injson:str, n:int) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
+        # try fuzzing first column
+        for i in range(0, len(first_row)):
+            first_row[i] = PAD * 15 # TODO not working with larger ints - not black box
 
-        cyclic_str = cyclic(n, alphabet=string.ascii_lowercase)
+        # join the modified contents
+        badline = ",".join(first_row)
+        payload.append(badline + '\n')
+    
+    badpayload = "".join(payload)
+    cmdret = runfuzz(binary_file, badpayload)
+    return detect_crash(cmdret, sample_file_str)
 
-        for k in jsondict:
-            jsondict[k] = cyclic_str
-    return str(jsondict).replace("'",'"')
 
-def bigkeys_json(injson:str, n:str) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for i in range(n):
-            jsondict[str(i)] = str(i) # can make this random chars
-    return str(jsondict).replace("'", '"')
+def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
+    ret = fuzz_rows(binary_file, binary_input, sample_file_str)
+    if ret:
+        log.info(f"Found vulnerability on fuzzing rows!...")
+        return ret
 
+    ret = fuzz_colns(binary_file, binary_input, sample_file_str)
+    if ret:
+        log.info(f"Found vulnerability on fuzzing columns!...")
+        return ret
+    return ret
 
 
 '''
@@ -70,23 +62,57 @@ Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.
 
 Returns: the return code of the binary
 '''
-def fuzzy_json(binary:str, injson:str) -> bool:
-    stdouts = []
+def fuzz_json(binary:str, injson:str) -> bool:
     cmd = f'./{binary}'
-    context.cyclic_alphabet = string.ascii_lowercase
-        
+
     # try empty file
-    badjson = empty_file()
-    ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-    detect_crash(ret, badjson)
-            
+    badjson = empty_str()
+    cmdret = runfuzz(cmd, badjson)
+    ret = detect_crash(cmdret, badjson)
+    if ret:
+        return ret
+
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(injson)
-    ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-    detect_crash(ret, badjson)
-    
+    cmdret = runfuzz(cmd, badjson)
+    ret = detect_crash(cmdret, badjson)
+    if ret:
+        return ret
+
     # try large amount of key:value pairs
     badjson = bigkeys_json(injson, 100000)
-    ret = subprocess.run(cmd, input=badjson, stdout=subprocess.PIPE, text=True)
-    detect_crash(ret, badjson)
+    cmdret = runfuzz(cmd, badjson)
+    ret = detect_crash(cmdret, badjson)
+    if ret:
+        return ret
+    return ret
 
+'''
+Fuzz plaintext with mutated inputs.
+
+Returns: return code of binary
+'''
+def fuzz_plaintext(binary:str, intxt:str) -> int:
+    cmd = f'./{binary}'
+
+    # try empty file
+    badtxt = empty_str()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret != 0:
+        return ret
+
+    # try large file
+    badtxt = PAD * 10000
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        return ret
+
+    # try mutations on the file
+    badtxt = repeat_sample_input(intxt, 20)
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        return ret
+    return ret
