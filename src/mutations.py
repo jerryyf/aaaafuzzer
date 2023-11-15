@@ -18,26 +18,54 @@ def empty_json() -> str:
 def large_str() -> str:
     return PAD * MAX_INT
 
-'''
-Repeat a file's contents to the power of n.
-'''
 def repeat_sample_input(sample_input, n) -> str:
+    '''
+    Repeat a file's contents to the power of n.
+    '''
     with open(sample_input, 'r') as inf:
         content = inf.read()
         for i in range(n):
             content += content
     return content
 
-'''
-Generates a string with {} n amount of times.
-'''
+def repeat_last_line(sample_input, n) -> str:
+    with open(sample_input, 'r') as inf:
+        lines = inf.readlines()
+        for i in range(n):
+            ret += lines[len(lines) - 1]
+    return ret
+
+
+def bit_flip(sample_input:str, pos:int) -> str:
+    '''
+    Basic helper to flip bit of sample_input as position pos.
+    '''
+    sample_int = int.from_bytes(sample_input.encode(), 'little') # little endian for x86 32 bit arch
+    mask = 1 << pos
+    return str(sample_int ^ mask)
+
+def walking_bit_flip(sample_input:str, n:int) -> list:
+    '''
+    Walking bit flip implementation. Walks up n amount of times starting from 0.
+
+    Returns list of bit flipped inputs.
+    '''
+    ret = []
+    for i in range(n):
+        ret += bit_flip(sample_input, i)
+    return ret
+
+
 def n_empty_json(n:int) -> str:
+    '''
+    Generates a string with {} n amount of times.
+    '''
     return '{}' * n
 
-'''
-Takes a sample json and mutates only int values with large int values.
-'''
 def bigint_value_json(injson:str) -> str:
+    '''
+    Takes a sample json and mutates only int values with large int values.
+    '''
     with open(injson, 'r') as inf:
         jsondict = json.load(inf)
         logging.info('JSON sample input: ' + str(jsondict))
@@ -46,10 +74,10 @@ def bigint_value_json(injson:str) -> str:
                 jsondict[k] = MAX_INT
     return str(jsondict).replace("'",'"')
 
-'''
-Takes sample json, and int power, and fills each value at each key with cyclic(n)
-'''
 def bigstr_value_json(injson:str, n:int) -> str:
+    '''
+    Takes sample json, and int power, and fills each value at each key with cyclic(n)
+    '''
     with open(injson, 'r') as inf:
         jsondict = json.load(inf)
         logging.info('JSON sample input: ' + str(jsondict))

@@ -57,12 +57,12 @@ def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
     return ret
 
 
-'''
-Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
-
-Returns: the return code of the binary
-'''
 def fuzz_json(binary:str, injson:str) -> bool:
+    '''
+    Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
+
+    Returns: the return code of the binary
+    '''
     cmd = f'./{binary}'
 
     # try empty file
@@ -85,21 +85,31 @@ def fuzz_json(binary:str, injson:str) -> bool:
     ret = detect_crash(cmdret, badjson)
     if ret:
         return ret
+
     return ret
 
-'''
-Fuzz plaintext with mutated inputs.
-
-Returns: return code of binary
-'''
 def fuzz_plaintext(binary:str, intxt:str) -> int:
+    '''
+    Fuzz plaintext with mutated inputs.
+
+    Returns: return code of binary
+    '''
     cmd = f'./{binary}'
+
+    try:
+        with open(intxt, 'r') as inf:
+            lines = inf.readlines()
+            stripped_lines = []
+            for i in range(len(lines)):
+                stripped_lines += lines[i].strip()
+    except:
+        log.warn('Failed reading plaintext lines, skipping.')
 
     # try empty file
     badtxt = empty_str()
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
-    if ret != 0:
+    if ret:
         return ret
 
     # try large file
@@ -108,11 +118,50 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
     ret = detect_crash(cmdret, badtxt)
     if ret:
         return ret
+    
+    # try known ints
+    known_ints = [-1, 0, 256, 1024, MAX_INT-1, MAX_INT]
+    for line in lines:
+        for i in known_ints:
+            badtxt = line + str(i)
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret:
+                return ret
 
-    # try mutations on the file
+    # try repeating sample input
     badtxt = repeat_sample_input(intxt, 20)
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
     if ret:
         return ret
+
+    # try bit flipping whole file
+    for i in range(len(intxt)): 
+        badtxt = bit_flip(intxt, i)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret:
+            return ret
+
+    # try bit flipping each line
+    for line in lines:
+        for i in range(len(line)):
+            badtxt = bit_flip(intxt, i)
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret:
+                return ret
+
+    for line in lines:
+        bitflips = walking_bit_flip(line, 16) # First do 16 bit flips
+        for i in range(len(bitflips)):
+            # Assume the first line is password - TODO detect output change
+            badtxt = line + bitflips[i]
+
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+        if ret:
+            return ret
+
     return ret
