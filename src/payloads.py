@@ -1,8 +1,11 @@
 from pwn import *
 import logging
+import copy
 from harness import detect_crash
 from util import *
 from mutations import *
+import xml.etree.ElementTree as ET
+
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
@@ -115,4 +118,40 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
     ret = detect_crash(cmdret, badtxt)
     if ret:
         return ret
+    return ret
+
+
+'''
+Generate and run a XML bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
+
+Returns: the return code of the binary
+'''
+def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
+    print(f"Here! Fuzzing xml with child tags")
+    cmd = f'./{binary_file}'
+    # read file from beginning
+    with open(sample_file_str, 'r') as f:
+        f.seek(0)
+        payload = f.read()
+    # grab the root element from payload and copy all subchild 
+    root = ET.fromstring(payload)
+    head = copy.deepcopy(root)
+    # append child elements into payload
+    for _ in range(FUZZ_NUM):
+        tail = copy.deepcopy(head)
+        root.append(tail)
+        bad = ET.tostring(root).decode()
+        cmdret = runfuzz(cmd, bad)
+        ret = detect_crash(cmdret, bad)
+        if ret:
+            log.info(f"Found vulnerability on fuzzing child tags!...")
+            return ret
+    return ret
+
+
+def fuzz_xml(binary_file, sample_file_str) -> int:
+    ret = fuzz_child_tags(binary_file, sample_file_str, 100)
+    if ret:
+        return ret
+    
     return ret

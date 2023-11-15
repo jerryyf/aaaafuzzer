@@ -1,6 +1,9 @@
 import json
 import sys
+import copy
 import logging
+import random
+import xml.etree.ElementTree as ET
 from pwn import *
 
 MAX_INT = sys.maxsize
@@ -67,3 +70,5 @@ def bigkeys_json(injson:str, n:str) -> str:
         for i in range(n):
             jsondict[str(i)] = str(i) # can make this random chars
     return str(jsondict).replace("'", '"')
+
+
