@@ -20,6 +20,7 @@ def detect_crash(proc:CompletedProcess[str], input:str) -> int:
             outf.write(input)
     # in any case, add to list of outputs and log
     stdouts.append(proc.stdout)
+    logging.info('Input tried:\n' + input)
     logging.info('Program output:\n' + proc.stdout)
     return proc.returncode
 
