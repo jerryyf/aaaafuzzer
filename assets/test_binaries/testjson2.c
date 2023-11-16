@@ -1,41 +1,29 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define MAX_KEYS 5
-#define MAX_KEY_LENGTH 20
-
-void process_json(char *json) {
-    int key_count = 0;
-    char *token;
-    const char *delimiters = "{\":,}";
-
-    token = strtok(json, delimiters);
-    char keys[MAX_KEYS][MAX_KEY_LENGTH];
-
-    while (token != NULL) {
-        if (key_count >= MAX_KEYS) {
-            char buffer[MAX_KEY_LENGTH];
-            strcpy(buffer, "overflow!");
-        } else {
-            if (token[0] != ' ' && strlen(token) < MAX_KEY_LENGTH) {
-                strcpy(keys[key_count], token);
-                key_count++;
-            }
-        }
-        token = strtok(NULL, delimiters);
-    }
-
-    printf("Processed JSON with %d keys\n", key_count);
-}
+#define MAX_KEY_LENGTH 10
+#define MAX_VALUE_LENGTH 10
+#define MAX_JSON_LENGTH 100
 
 int main() {
-    char json_data[1000];
-    printf("Enter JSON data: ");
+    char key[MAX_KEY_LENGTH + 1];
+    char value[MAX_VALUE_LENGTH + 1];
+    char json_data[MAX_JSON_LENGTH];
 
-    // Read JSON data using scanf
-    scanf("%999[^\n]", json_data);
+    printf("Enter JSON keys and values (Type 'quit' to stop):\n");
 
-    process_json(json_data);
+    while (scanf("%10s%*c%10s%*c", key, value) != EOF) {
+        if (strlen(key) >= MAX_KEY_LENGTH || strlen(value) >= MAX_VALUE_LENGTH) {
+            printf("Key or value is too long! Triggering segmentation fault...\n");
+            char buffer[MAX_JSON_LENGTH];
+            strcpy(buffer, "overflow!");
+        } else {
+            strcat(json_data, key);
+            strcat(json_data, ":");
+            strcat(json_data, value);
+            strcat(json_data, ",");
+        }
+    }
     return 0;
 }

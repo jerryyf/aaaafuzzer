@@ -71,6 +71,13 @@ def fuzz_json(binary:str, injson:str) -> bool:
     ret = detect_crash(cmdret, badjson)
     if ret:
         return ret
+    
+    # try repeating sample input
+    badjson = repeat_sample_input(injson, 20)
+    cmdret = runfuzz(cmd, badjson)
+    ret = detect_crash(cmdret, badjson)
+    if ret:
+        return ret
 
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(injson)

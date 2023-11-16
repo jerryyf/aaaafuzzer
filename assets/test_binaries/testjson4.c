@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define MAX_RECORDS 5
-#define RECORD_SIZE 2
+#define RECORD_SIZE 100
 
 int main() {
     char records[MAX_RECORDS][RECORD_SIZE];

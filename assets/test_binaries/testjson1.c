@@ -15,8 +15,9 @@ void process_json(char *json) {
 
     while (token != NULL) {
         if (key_count >= MAX_KEYS) {
+            printf("Too many keys! Triggering segmentation fault...\n");
             char buffer[MAX_KEY_LENGTH];
-            strcpy(buffer, "overflow!");
+            strcpy(buffer, "overflow!"); // Buffer overflow here
         } else {
             if (token[0] != ' ' && strlen(token) < MAX_KEY_LENGTH) {
                 strcpy(keys[key_count], token);
@@ -25,18 +26,15 @@ void process_json(char *json) {
         }
         token = strtok(NULL, delimiters);
     }
-
     printf("Processed JSON with %d keys\n", key_count);
 }
 
 int main() {
     char json_data[1000];
     printf("Enter JSON data: ");
-    fgets(json_data, sizeof(json_data), stdin);
-    
-    if (json_data[strlen(json_data) - 1] == '\n') {
-        json_data[strlen(json_data) - 1] = '\0';
-    }
+
+    // Read JSON data using scanf
+    scanf("%999[^\n]", json_data);
 
     process_json(json_data);
     return 0;
