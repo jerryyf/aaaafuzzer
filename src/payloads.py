@@ -78,18 +78,12 @@ def fuzz_json(binary:str, sample_input_path:str) -> bool:
         return ret
 
     # try large file
-    badtxt = PAD * 10000
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
+    badjson = PAD * 10000
+    cmdret = runfuzz(cmd, badjson)
+    ret = detect_crash(cmdret, badjson)
     if ret:
         return ret
 
-    # try repeating sample input
-    badtxt = repeat_sample_input(content, 10)
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret:
-        return ret
 
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(content)
@@ -187,6 +181,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         cmdret = runfuzz(cmd, badtxt)
         ret = detect_crash(cmdret, badtxt)
         if ret:
+            log.info('Crashed with random char flip!')
             return ret
     
     # random strings
@@ -195,6 +190,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         cmdret = runfuzz(cmd, badtxt)
         ret = detect_crash(cmdret, badtxt)
         if ret:
+            log.info('Crashed with random string!')
             return ret
 
     # return status would be 0 here
