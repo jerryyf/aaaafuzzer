@@ -2,6 +2,7 @@ import json
 import sys
 import logging
 from pwn import *
+import random
 
 MAX_INT = sys.maxsize
 PAD = 'A'
@@ -22,17 +23,9 @@ def repeat_sample_input(sample_input, n) -> str:
     '''
     Repeat a file's contents to the power of n.
     '''
-    with open(sample_input, 'r') as inf:
-        content = inf.read()
-        for i in range(n):
-            content += content
-    return content
-
-def repeat_last_line(sample_input, n) -> str:
-    with open(sample_input, 'r') as inf:
-        lines = inf.readlines()
-        for i in range(n):
-            ret += lines[len(lines) - 1]
+    ret = sample_input
+    for i in range(n):
+        ret += sample_input
     return ret
 
 
@@ -55,12 +48,39 @@ def walking_bit_flip(sample_input:str, n:int) -> list:
         ret += bit_flip(sample_input, i)
     return ret
 
+def random_char_flip(sample_input:str) -> str:
+    '''
+    Returns sample_input with a random char bit flipped randomly.
+    '''
+    if sample_input == '':
+        return sample_input
+    pos = random.randint(0, len(sample_input) - 1)
+    char = sample_input[pos]
+    bitmask = 1 << random.randint(0, 6)
+    char = chr(ord(char) ^ bitmask)
+    ret = sample_input[:pos] + char + sample_input[pos + 1:]
+    # print(ret)
+    return ret
+
+def random_str(len:int=100, char_start:int=32, char_range:int=32) -> str:
+    '''
+    A string of up to `max_length` characters
+       in the range [`char_start`, `char_start` + `char_range`)
+    '''
+    strlen = random.randrange(0, len + 1)
+    ret = ''
+    for i in range(0, strlen):
+        ret += chr(random.randrange(char_start, char_start + char_range))
+    print(ret)
+    return ret
 
 def n_empty_json(n:int) -> str:
     '''
     Generates a string with {} n amount of times.
     '''
     return '{}' * n
+
+# TODO parse text rather than filepath
 
 def bigint_value_json(injson:str) -> str:
     '''

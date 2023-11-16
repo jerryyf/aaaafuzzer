@@ -7,7 +7,7 @@ from mutations import *
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
-# TODO refactor csv
+ITER = 200
 
 def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
     # read file from beginning
@@ -88,7 +88,7 @@ def fuzz_json(binary:str, injson:str) -> bool:
 
     return ret
 
-def fuzz_plaintext(binary:str, intxt:str) -> int:
+def fuzz_plaintext(binary:str, content:str) -> int:
     '''
     Fuzz plaintext with mutated inputs.
 
@@ -96,14 +96,12 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
     '''
     cmd = f'{binary}'
 
-    try:
-        with open(intxt, 'r') as inf:
-            lines = inf.readlines()
-            stripped_lines = []
-            for i in range(len(lines)):
-                stripped_lines += lines[i].strip()
-    except:
-        log.warn('Failed reading plaintext lines, skipping.')
+    with open(content, 'r') as inf:
+        content = inf.read()
+        lines = inf.readlines()
+        stripped_lines = []
+        for i in range(len(lines)):
+            stripped_lines += lines[i].strip()
 
     # try empty file
     badtxt = empty_str()
@@ -130,15 +128,15 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
                 return ret
 
     # try repeating sample input
-    badtxt = repeat_sample_input(intxt, 10)
+    badtxt = repeat_sample_input(content, 10)
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
     if ret:
         return ret
 
     # try bit flipping whole file
-    for i in range(len(intxt)): 
-        badtxt = bit_flip(intxt, i)
+    for i in range(len(content)): 
+        badtxt = bit_flip(content, i)
         cmdret = runfuzz(cmd, badtxt)
         ret = detect_crash(cmdret, badtxt)
         if ret:
@@ -147,7 +145,7 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
     # try bit flipping each line
     for line in lines:
         for i in range(len(line)):
-            badtxt = bit_flip(intxt, i)
+            badtxt = bit_flip(content, i)
             cmdret = runfuzz(cmd, badtxt)
             ret = detect_crash(cmdret, badtxt)
             if ret:
@@ -163,5 +161,22 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
             ret = detect_crash(cmdret, badtxt)
         if ret:
             return ret
+        
+    # random mutations
+    for i in range(ITER):
+        badtxt = random_char_flip(content)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret:
+            return ret
+    
+    # random strings
+    for i in range(ITER):
+        badtxt = random_str()
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret:
+            return ret
 
+    # return status would be 0 here
     return ret
