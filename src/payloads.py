@@ -77,6 +77,20 @@ def fuzz_json(binary:str, sample_input_path:str) -> bool:
     if ret:
         return ret
 
+    # try large file
+    badtxt = PAD * 10000
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        return ret
+
+    # try repeating sample input
+    badtxt = repeat_sample_input(content, 10)
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        return ret
+
     # try large value for each key. Key is not mutated
     badjson = bigint_value_json(content)
     cmdret = runfuzz(cmd, badjson)
