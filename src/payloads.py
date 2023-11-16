@@ -63,7 +63,7 @@ def fuzz_json(binary:str, injson:str) -> bool:
 
     Returns: the return code of the binary
     '''
-    cmd = f'./{binary}'
+    cmd = f'{binary}'
 
     # try empty file
     badjson = empty_str()
@@ -94,7 +94,7 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
 
     Returns: return code of binary
     '''
-    cmd = f'./{binary}'
+    cmd = f'{binary}'
 
     try:
         with open(intxt, 'r') as inf:
@@ -120,7 +120,7 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
         return ret
     
     # try known ints
-    known_ints = [-1, 0, 256, 1024, MAX_INT-1, MAX_INT]
+    known_ints = [-1, 0, 127, 256, 1024, 65536, MAX_INT-1, MAX_INT]
     for line in lines:
         for i in known_ints:
             badtxt = line + str(i)
@@ -130,7 +130,7 @@ def fuzz_plaintext(binary:str, intxt:str) -> int:
                 return ret
 
     # try repeating sample input
-    badtxt = repeat_sample_input(intxt, 20)
+    badtxt = repeat_sample_input(intxt, 10)
     cmdret = runfuzz(cmd, badtxt)
     ret = detect_crash(cmdret, badtxt)
     if ret:
