@@ -137,14 +137,13 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
     root = ET.fromstring(payload)
     head = copy.deepcopy(root)
     # append child elements into payload
-    for _ in range(FUZZ_NUM):
+    for i in range(FUZZ_NUM):
         tail = copy.deepcopy(head)
         root.append(tail)
         bad = ET.tostring(root).decode()
         cmdret = runfuzz(cmd, bad)
         ret = detect_crash(cmdret, bad)
         if ret:
-            log.info(f"Found vulnerability on fuzzing child tags!...")
             return ret
     return ret
 
@@ -152,17 +151,33 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
 def fuzz_xml(binary_file, sample_file_str) -> int:
     cmd = f'./{binary_file}'
 
-    # badtxt = empty_xml()
-    # cmdret = runfuzz(cmd, badtxt)
-    # ret = detect_crash(cmdret, badtxt)
-    # if ret:
-    #     log.info(f"Found vulnerability on empty xml!...")
-    #     return ret
-    
+    # try empty xml 
+    badtxt = empty_xml()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        log.info(f"Found vulnerability on empty xml!...")
+
+    # try nested xml tags
+    badtxt = nested_tags_xml()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        log.info(f"Found vulnerability on nested xml tags!...")
+
+    # try tested xml contents
+    badtxt = generate_nested_contents(sample_file_str)
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        log.info(f"Found vulnerability on nested content xml!...")
+
+    # try fuzz child tags
     ret = fuzz_child_tags(binary_file, sample_file_str, 100)
     if ret:
-        return ret
+        log.info(f"Found vulnerability on fuzzing child xml tags!...")
 
+    # try fuzz xml attributes
     form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
     for each in form_string_chars:
         badtxt =  fuzz_attri_xml(sample_file_str, each)
@@ -170,6 +185,6 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
         ret = detect_crash(cmdret, badtxt)
         if ret:
             log.info(f"Found vulnerability on fuzzing xml attributes!...")
-            return ret
 
+    return ret
     

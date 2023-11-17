@@ -76,6 +76,34 @@ def bigkeys_json(injson:str, n:str) -> str:
 
 
 '''
+Takes sample xml, mutate nested tags
+'''
+def nested_tags_xml() -> str:
+    res = f"{'<tag>'*100000}"
+    res += f"{'</tag>'*100000}"
+    return res
+
+'''
+Takes sample xml, mutate contents
+'''
+def fuzz_content(content, len):
+    res = "".join(random.choices(string.ascii_letters + string.digits, k=len))
+    return res
+
+def generate_nested_contents(sample_file_str):
+    # read file from beginning
+    with open(sample_file_str, 'r') as f:
+        f.seek(0)
+        payload = f.read()
+    
+    root = ET.fromstring(payload)
+    for element in root.iter():
+        if element.text is not None:
+            element.text = fuzz_content(element.text, 10000)
+        
+    return ET.tostring(root).decode()
+
+'''
 Takes sample xml, mutate string attributes
 '''
 def find_tags(root, tags) -> str:
@@ -99,3 +127,4 @@ def fuzz_attri_xml(sample_file_str, character) -> str:
         tag.set('href', fill)
         
     return ET.tostring(root).decode()
+
