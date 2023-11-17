@@ -6,27 +6,28 @@ from util import curr_time_taken
 MAX_RUNTIME = 160
 stdouts = []
 
-'''
-Given a completed process from subprocess.run() and the input given to the program,
-if exit with non-zero code, log the crash type and generate bad.txt
-
-Returns process return code.
-'''
 def detect_crash(proc:CompletedProcess[str], input:str) -> int:
+    '''
+    Given a completed process from subprocess.run() and the input given to the program,
+    if exit with non-zero code, log the crash type and generate bad.txt
+
+    Returns process return code.
+    '''
     if proc.returncode != 0:
         logging.critical(f'Crashed with input {input}')
-        log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated at /tmp/bad.txt')
-        with open('/tmp/bad.txt', 'w') as outf:
+        log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated in current directory.')
+        with open('./bad.txt', 'w') as outf:
             outf.write(input)
     # in any case, add to list of outputs and log
     stdouts.append(proc.stdout)
+    logging.info('Input tried:\n' + input)
     logging.info('Program output:\n' + proc.stdout)
     return proc.returncode
 
-'''
-Takes in current time taken; if greater than MAX_RUNTIME exit the program.
-'''
 def max_runtime_kill(curr_time) -> bool:
+    '''
+    Takes in current time taken; if greater than MAX_RUNTIME exit the program.
+    '''
     if curr_time_taken(curr_time) >= MAX_RUNTIME:
         log.info('Max runtime exceeded. Exiting.')
         sys.exit()
