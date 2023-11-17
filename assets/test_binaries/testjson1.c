@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define MAX_KEYS 5
-#define MAX_KEY_LENGTH 5
+#define MAX_KEY_LENGTH 20
 
 void process_json(char *json) {
     int key_count = 0;
@@ -16,8 +16,8 @@ void process_json(char *json) {
     while (token != NULL) {
         if (key_count >= MAX_KEYS) {
             printf("Too many keys! Triggering segmentation fault...\n");
-            char buffer[MAX_KEY_LENGTH];
-            strcpy(buffer, "overflow!"); // Buffer overflow here
+            char *ptr = NULL;
+            *ptr = 'x';
         } else {
             if (token[0] != ' ' && strlen(token) < MAX_KEY_LENGTH) {
                 strcpy(keys[key_count], token);
