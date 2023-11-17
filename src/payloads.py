@@ -77,13 +77,6 @@ def fuzz_json(binary:str, sample_input_path:str) -> bool:
     if ret:
         return ret
     
-    # try repeating sample input
-    badjson = repeat_sample_input(injson, 20)
-    cmdret = runfuzz(cmd, badjson)
-    ret = detect_crash(cmdret, badjson)
-    if ret:
-        return ret
-
     # try large file
     badjson = PAD * 10000
     cmdret = runfuzz(cmd, badjson)
