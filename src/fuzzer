@@ -50,8 +50,9 @@ if __name__ == '__main__':
             if fuzz_xml(binary_file, sample_file_str) == 0:
                 log.warn("No crashes detected.")
         case _:
-            log.info("Unknown input file format, exiting.")
-            sys.exit()
+            log.info("Unknown input file format, treating as plaintext.")
+            if fuzz_plaintext(binary_file, sample_file_str) == 0:
+                log.warn("No crashes detected.")
 
     print(f"Fuzzer process done in {curr_time_taken(init_time)} seconds.")
 

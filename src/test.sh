@@ -12,3 +12,10 @@
 ./fuzzer ../assets/xml1 ../assets/xml1.txt
 ./fuzzer ../assets/xml2 ../assets/xml2.txt
 ./fuzzer ../assets/xml3 ../assets/xml3.txt
+
+./fuzzer ../assets/test_binaries/testjson1 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson2 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson3 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson4 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson5 ../assets/json1.txt
+
