@@ -106,13 +106,10 @@ def bigstr_value_json(sample_json:str, n:int) -> str:
     return str(sample_json).replace("'",'"')
 
 
-def bigkeys_json(injson:str, n:str) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for i in range(n):
-            jsondict[str(i)] = str(i) # can make this random chars
-    return str(jsondict).replace("'", '"')
+def bigkeys_json(sample_json:str, n:str) -> str:
+    for i in range(n):
+        sample_json[str(i)] = str(i) # can make this random chars
+    return str(sample_json).replace("'", '"')
 
 
 '''
