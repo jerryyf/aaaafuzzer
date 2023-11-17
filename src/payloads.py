@@ -44,7 +44,20 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
     cmdret = runfuzz(binary_file, badpayload)
     return detect_crash(cmdret, sample_file_str)
 
+def fuzz_add(binary_file, binary_input, sample_file_str):
+    binary_input.seek(0)
+    payload = binary_input.readline().strip()
 
+    for i in range(1, 100):
+        # Repeat the initial payload 'i' times
+        badpayload = ','.join([payload] * i)
+    
+    cmdret = runfuzz(binary_file, badpayload)
+    ret = detect_crash(cmdret, sample_file_str)
+    if ret != 0:
+        return ret  # Exit early if crash is detected
+    return 0
+    
 def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
     ret = fuzz_rows(binary_file, binary_input, sample_file_str)
     if ret:
@@ -52,6 +65,11 @@ def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
         return ret
 
     ret = fuzz_colns(binary_file, binary_input, sample_file_str)
+    if ret:
+        log.info(f"Found vulnerability on fuzzing columns!...")
+        return ret
+        
+    ret = fuzz_add(binary_file, binary_input, sample_file_str)
     if ret:
         log.info(f"Found vulnerability on fuzzing columns!...")
         return ret
