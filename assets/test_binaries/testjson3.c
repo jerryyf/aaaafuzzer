@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_VALUE_LENGTH 40
+#define MAX_VALUE_LENGTH 5
 
 void process_json(char *json) {
     char *token;

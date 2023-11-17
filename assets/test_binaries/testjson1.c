@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #define MAX_KEYS 5
-#define MAX_KEY_LENGTH 20
+#define MAX_KEY_LENGTH 5
 
 void process_json(char *json) {
     int key_count = 0;
