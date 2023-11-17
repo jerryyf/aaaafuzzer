@@ -15,6 +15,9 @@ logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(leve
 def empty_str() -> str:
     return ''
 
+def empty_xml() -> str:
+    return '<></>'
+
 def empty_json() -> str:
     return '{}'
 
@@ -72,3 +75,27 @@ def bigkeys_json(injson:str, n:str) -> str:
     return str(jsondict).replace("'", '"')
 
 
+'''
+Takes sample xml, mutate string attributes
+'''
+def find_tags(root, tags) -> str:
+    for _ in root:
+        tags.append(_)
+        find_tags(_,tags)
+    return tags
+
+def fuzz_attri_xml(sample_file_str, character) -> str:
+    print("Fuzzing the XML formatted sample input...\n", end="")
+    with open(sample_file_str, 'r') as f:
+        f.seek(0)
+        payload = f.read()
+
+    root = ET.fromstring(payload)
+    all_tags = find_tags(root, [])
+    attribute_herf = [tag for tag in all_tags if 'href' in tag.attrib]
+
+    fill = character*100
+    for tag in attribute_herf:
+        tag.set('href', fill)
+        
+    return ET.tostring(root).decode()

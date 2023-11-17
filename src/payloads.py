@@ -6,6 +6,7 @@ from util import *
 from mutations import *
 import xml.etree.ElementTree as ET
 
+PAD = 'A'
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
@@ -127,7 +128,6 @@ Generate and run a XML bad.txt against binary. Log, write the bad input to bad.t
 Returns: the return code of the binary
 '''
 def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
-    print(f"Here! Fuzzing xml with child tags")
     cmd = f'./{binary_file}'
     # read file from beginning
     with open(sample_file_str, 'r') as f:
@@ -150,8 +150,26 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
 
 
 def fuzz_xml(binary_file, sample_file_str) -> int:
+    cmd = f'./{binary_file}'
+
+    # badtxt = empty_xml()
+    # cmdret = runfuzz(cmd, badtxt)
+    # ret = detect_crash(cmdret, badtxt)
+    # if ret:
+    #     log.info(f"Found vulnerability on empty xml!...")
+    #     return ret
+    
     ret = fuzz_child_tags(binary_file, sample_file_str, 100)
     if ret:
         return ret
+
+    form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
+    for each in form_string_chars:
+        badtxt =  fuzz_attri_xml(sample_file_str, each)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret:
+            log.info(f"Found vulnerability on fuzzing xml attributes!...")
+            return ret
+
     
-    return ret
