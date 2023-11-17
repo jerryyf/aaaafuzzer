@@ -2,6 +2,7 @@ import json
 import sys
 import logging
 from pwn import *
+import random
 
 MAX_INT = sys.maxsize
 PAD = 'A'
@@ -22,17 +23,9 @@ def repeat_sample_input(sample_input, n) -> str:
     '''
     Repeat a file's contents to the power of n.
     '''
-    with open(sample_input, 'r') as inf:
-        content = inf.read()
-        for i in range(n):
-            content += content
-    return content
-
-def repeat_last_line(sample_input, n) -> str:
-    with open(sample_input, 'r') as inf:
-        lines = inf.readlines()
-        for i in range(n):
-            ret += lines[len(lines) - 1]
+    ret = sample_input
+    for i in range(n):
+        ret += sample_input
     return ret
 
 
@@ -55,6 +48,31 @@ def walking_bit_flip(sample_input:str, n:int) -> list:
         ret += bit_flip(sample_input, i)
     return ret
 
+def random_char_flip(sample_input:str) -> str:
+    '''
+    Returns sample_input with a random char bit flipped randomly.
+    '''
+    if sample_input == '':
+        return sample_input
+    pos = random.randint(0, len(sample_input) - 1)
+    char = sample_input[pos]
+    bitmask = 1 << random.randint(0, 6)
+    char = chr(ord(char) ^ bitmask)
+    ret = sample_input[:pos] + char + sample_input[pos + 1:]
+    # print(ret)
+    return ret
+
+def random_str(len:int=100, char_start:int=32, char_range:int=32) -> str:
+    '''
+    A string of up to `max_length` characters
+       in the range [`char_start`, `char_start` + `char_range`)
+    '''
+    strlen = random.randrange(0, len + 1)
+    ret = ''
+    for i in range(0, strlen):
+        ret += chr(random.randrange(char_start, char_start + char_range))
+    # print(ret)
+    return ret
 
 def n_empty_json(n:int) -> str:
     '''
@@ -62,36 +80,26 @@ def n_empty_json(n:int) -> str:
     '''
     return '{}' * n
 
-def bigint_value_json(injson:str) -> str:
+def bigint_value_json(sample_json:str) -> str:
     '''
     Takes a sample json and mutates only int values with large int values.
     '''
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for k in jsondict:
-            if type(jsondict[k]) == int:
-                jsondict[k] = MAX_INT
-    return str(jsondict).replace("'",'"')
+    for k in sample_json:
+        if type(sample_json[k]) == int:
+            sample_json[k] = MAX_INT
+    return str(sample_json).replace("'",'"')
 
-def bigstr_value_json(injson:str, n:int) -> str:
+def bigstr_value_json(sample_json:str, n:int) -> str:
     '''
     Takes sample json, and int power, and fills each value at each key with cyclic(n)
     '''
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
+    cyclic_str = cyclic(n, alphabet=string.ascii_lowercase)
 
-        cyclic_str = cyclic(n, alphabet=string.ascii_lowercase)
+    for k in sample_json:
+        sample_json[k] = cyclic_str
+    return str(sample_json).replace("'",'"')
 
-        for k in jsondict:
-            jsondict[k] = cyclic_str
-    return str(jsondict).replace("'",'"')
-
-def bigkeys_json(injson:str, n:str) -> str:
-    with open(injson, 'r') as inf:
-        jsondict = json.load(inf)
-        logging.info('JSON sample input: ' + str(jsondict))
-        for i in range(n):
-            jsondict[str(i)] = str(i) # can make this random chars
-    return str(jsondict).replace("'", '"')
+def bigkeys_json(sample_json:str, n:str) -> str:
+    for i in range(n):
+        sample_json[str(i)] = str(i) # can make this random chars
+    return str(sample_json).replace("'", '"')
