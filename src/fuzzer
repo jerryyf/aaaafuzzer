@@ -31,7 +31,6 @@ if __name__ == '__main__':
 
     print(f'AAAAAAAAfuzzing {binary_file}')
 
-
     match check_type(sample_file_str):
         case 'plaintext':
             log.info("Detected plaintext file format from given sample input.")
