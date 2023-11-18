@@ -6,13 +6,13 @@ from util import curr_time_taken
 MAX_RUNTIME = 160
 stdouts = []
 
-def detect_crash(proc:CompletedProcess[str], input:str) -> int:
-    '''
-    Given a completed process from subprocess.run() and the input given to the program,
-    if exit with non-zero code, log the crash type and generate bad.txt
+'''
+Given a completed process from subprocess.run() and the input given to the program,
+if exit with non-zero code, log the crash type and generate bad.txt
 
-    Returns process return code.
-    '''
+Returns process return code.
+'''
+def detect_crash(proc:CompletedProcess[str], input:str) -> int:
     if proc.returncode < 0:
         logging.critical(f'Crashed with input {input}')
         log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated in current directory.')
@@ -24,14 +24,17 @@ def detect_crash(proc:CompletedProcess[str], input:str) -> int:
     logging.info('Program output:\n' + proc.stdout)
     return proc.returncode
 
+'''
+Takes in current time taken; if greater than MAX_RUNTIME exit the program.
+'''
 def max_runtime_kill(curr_time) -> bool:
-    '''
-    Takes in current time taken; if greater than MAX_RUNTIME exit the program.
-    '''
     if curr_time_taken(curr_time) >= MAX_RUNTIME:
         log.info('Max runtime exceeded. Exiting.')
         sys.exit()
 
+'''
+Takes in a binaryfile and detects if there were any codeflow changes
+'''
 def detect_codeflow_change_json(binary:str, jsondict:dict):
     payload = []
     ret_status = []
