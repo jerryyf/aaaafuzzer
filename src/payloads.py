@@ -14,10 +14,11 @@ logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(leve
 ITER = 200
 
 '''
+Read the file from the beginning and runfuzz line by line
 
+Return: Check value of whether or not fuzzer caused a crash
 '''
 def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
-    # read file from beginning
     binary_input.seek(0)
     payload = binary_input.readline()
 
@@ -27,8 +28,12 @@ def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
     cmdret = runfuzz(binary_file, badpayload)
     return detect_crash(cmdret, sample_file_str)
 
+'''
+Read the file from the beginning, and fuzz column by column
+
+Return: Check value of whether or not fuzzer caused a crash
+'''
 def fuzz_colns(binary_file, binary_input, sample_file_str):
-    # read file from begining
     binary_input.seek(0)
     lines = [line.rstrip() for line in binary_input]
 
@@ -39,7 +44,7 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
 
         # try fuzzing first column
         for i in range(0, len(first_row)):
-            first_row[i] = PAD * 15 # TODO not working with larger ints - not black box
+            first_row[i] = PAD * 15 
 
         # join the modified contents
         badline = ",".join(first_row)
@@ -49,6 +54,11 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
     cmdret = runfuzz(binary_file, badpayload)
     return detect_crash(cmdret, sample_file_str)
 
+'''
+Read the file, mutliply the initial input
+
+Return: 0 if successful, other crash
+'''
 def fuzz_add(binary_file, binary_input, sample_file_str):
     binary_input.seek(0)
     payload = binary_input.readline().strip()
@@ -63,6 +73,11 @@ def fuzz_add(binary_file, binary_input, sample_file_str):
         return ret  # Exit early if crash is detected
     return 0
     
+'''
+Read the file, fuzz rows, columns and increase input
+
+Return: Check value of whether or not fuzzer caused a crash
+'''
 def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
     ret = fuzz_rows(binary_file, binary_input, sample_file_str)
     if ret < 0:
@@ -80,13 +95,14 @@ def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
         return ret
     return ret
 
+'''
+Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt 
+and exit if program exits with a non-zero status.
 
+Return: Check value of whether or not fuzzer caused a crash
+'''
 def fuzz_json(binary:str, sample_input_path:str) -> bool:
-    '''
-    Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
-
-    Returns: the return code of the binary
-    '''
+    
     cmd = f'{binary}'
 
     with open(sample_input_path, 'r') as inf:
@@ -128,12 +144,12 @@ def fuzz_json(binary:str, sample_input_path:str) -> bool:
     # in any case return status code
     return ret
 
-def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
-    '''
-    Fuzz plaintext with mutated inputs.
+'''
+Fuzz plaintext with mutated inputs.
 
-    Returns: return code of binary
-    '''
+Return: Check value of whether or not fuzzer caused a crash
+'''
+def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     cmd = f'{binary}'
 
     with open(sample_input_path, 'r') as inf:
@@ -233,9 +249,9 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
 
 
 '''
-Generate and run a XML bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
+Fuzzes the child tags of a XML binary file
 
-Returns: the return code of the binary
+Return: Check value of whether or not fuzzer caused a crash
 '''
 def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
     cmd = f'{binary_file}'
@@ -258,7 +274,12 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
 
     return ret
 
+'''
+Generate and run a XML bad.txt against binary. Log and write the bad input to bad.txt and exit if 
+program exits with a non-zero status.
 
+Return: Check value of whether or not fuzzer caused a crash
+'''
 def fuzz_xml(binary_file, sample_file_str) -> int:
     cmd = f'{binary_file}'
 
@@ -304,12 +325,12 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
 
     return ret
 
-def fuzz_jpg(binary:str, sample_input_path:str) -> int:
-    '''
-    Fuzz plaintext with mutated inputs.
+'''
+Fuzz plaintext with mutated inputs.
 
-    Returns: return code of binary
-    '''
+Return: Check value of whether or not fuzzer caused a crash
+'''
+def fuzz_jpg(binary:str, sample_input_path:str) -> int:
     cmd = f'{binary}'
 
     content = read(sample_input_path)
