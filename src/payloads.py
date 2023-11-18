@@ -259,6 +259,14 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
 def fuzz_xml(binary_file, sample_file_str) -> int:
     cmd = f'{binary_file}'
 
+     # try empty xml 
+    badtxt = empty_newline()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret < 0:
+        log.info(f"Found vulnerability on empty xml!...")
+        return ret
+    
     # try empty xml 
     badtxt = empty_xml()
     cmdret = runfuzz(cmd, badtxt)

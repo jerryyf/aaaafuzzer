@@ -13,6 +13,9 @@ PAD = 'A'
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
+def empty_newline() -> str:
+    return '\n'
+
 def empty_str() -> str:
     return ''
 
