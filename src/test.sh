@@ -1,3 +1,11 @@
+# custom test binaries
+
+./fuzzer ../assets/test_binaries/testjson1 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson2 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson3 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson4 ../assets/json1.txt
+./fuzzer ../assets/test_binaries/testjson5 ../assets/json1.txt
+
 # test against provided binaries and sample inputs
 # TODO:
 # Add more advanced binaries with deeper code path.
@@ -24,3 +32,8 @@
 ./fuzzer ../assets/test_binaries/testcsv1 ../assets/csv1.txt
 ./fuzzer ../assets/test_binaries/testcsv2 ../assets/csv1.txt
 ./fuzzer ../assets/test_binaries/testcsv3 ../assets/csv1.txt
+./fuzzer ../assets/xml1 ../assets/xml1.txt
+./fuzzer ../assets/xml2 ../assets/xml2.txt
+./fuzzer ../assets/xml3 ../assets/xml3.txt
+
+./fuzzer ../assets/jpg1 ../assets/jpg1.txt

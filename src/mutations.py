@@ -1,6 +1,9 @@
 import json
 import sys
+import copy
 import logging
+import random
+import xml.etree.ElementTree as ET
 from pwn import *
 import random
 
@@ -12,6 +15,9 @@ logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(leve
 
 def empty_str() -> str:
     return ''
+
+def empty_xml() -> str:
+    return '<></>'
 
 def empty_json() -> str:
     return '{}'
@@ -99,7 +105,63 @@ def bigstr_value_json(sample_json:str, n:int) -> str:
         sample_json[k] = cyclic_str
     return str(sample_json).replace("'",'"')
 
+
 def bigkeys_json(sample_json:str, n:str) -> str:
     for i in range(n):
         sample_json[str(i)] = str(i) # can make this random chars
     return str(sample_json).replace("'", '"')
+
+
+'''
+Takes sample xml, mutate nested tags
+'''
+def nested_tags_xml() -> str:
+    res = f"{'<tag>'*100000}"
+    res += f"{'</tag>'*100000}"
+    return res
+
+'''
+Takes sample xml, mutate contents
+'''
+def fuzz_content(content, len):
+    res = "".join(random.choices(string.ascii_letters + string.digits, k=len))
+    return res
+
+def generate_nested_contents(sample_file_str):
+    # read file from beginning
+    with open(sample_file_str, 'r') as f:
+        f.seek(0)
+        payload = f.read()
+    
+    root = ET.fromstring(payload)
+    for element in root.iter():
+        if element.text is not None:
+            element.text = fuzz_content(element.text, 10000)
+        
+    return ET.tostring(root).decode()
+
+'''
+Takes sample xml, mutate string attributes
+'''
+def find_tags(root, tags) -> str:
+    for _ in root:
+        tags.append(_)
+        find_tags(_,tags)
+    return tags
+
+def fuzz_attri_xml(sample_file_str, character) -> str:
+    print("Fuzzing the XML formatted sample input...\n", end="")
+    with open(sample_file_str, 'r') as f:
+        f.seek(0)
+        payload = f.read()
+
+    root = ET.fromstring(payload)
+    all_tags = find_tags(root, [])
+    attribute_herf = [tag for tag in all_tags if 'href' in tag.attrib]
+
+    fill = character*100
+    for tag in attribute_herf:
+        tag.set('href', fill)
+        
+    return ET.tostring(root).decode()
+

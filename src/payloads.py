@@ -1,9 +1,12 @@
 from pwn import *
 import logging
+import copy
 from harness import detect_crash
 from util import *
 from mutations import *
-import json
+import xml.etree.ElementTree as ET
+
+PAD = 'A'
 
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
@@ -192,7 +195,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             ret = detect_crash(cmdret, badtxt)
         if ret:
             return ret
-        
+
     # random mutations
     for i in range(ITER):
         badtxt = random_char_flip(content)
@@ -201,7 +204,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         if ret:
             log.info('Crashed with random char flip!')
             return ret
-    
+
     # random strings
     for i in range(ITER):
         badtxt = random_str()
@@ -210,6 +213,101 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         if ret:
             log.info('Crashed with random string!')
             return ret
+
+    # return status would be 0 here
+    return ret
+
+
+'''
+Generate and run a XML bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
+
+Returns: the return code of the binary
+'''
+def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
+    cmd = f'./{binary_file}'
+    # read file from beginning
+    with open(sample_file_str, 'r') as f:
+        f.seek(0)
+        payload = f.read()
+    # grab the root element from payload and copy all subchild 
+    root = ET.fromstring(payload)
+    head = copy.deepcopy(root)
+    # append child elements into payload
+    for i in range(FUZZ_NUM):
+        tail = copy.deepcopy(head)
+        root.append(tail)
+        bad = ET.tostring(root).decode()
+        cmdret = runfuzz(cmd, bad)
+        ret = detect_crash(cmdret, bad)
+        if ret:
+            return ret
+    return ret
+
+
+def fuzz_xml(binary_file, sample_file_str) -> int:
+    cmd = f'./{binary_file}'
+
+    # try empty xml 
+    badtxt = empty_xml()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        log.info(f"Found vulnerability on empty xml!...")
+
+    # try nested xml tags
+    badtxt = nested_tags_xml()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        log.info(f"Found vulnerability on nested xml tags!...")
+
+    # try tested xml contents
+    badtxt = generate_nested_contents(sample_file_str)
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret:
+        log.info(f"Found vulnerability on nested content xml!...")
+
+    # try fuzz child tags
+    ret = fuzz_child_tags(binary_file, sample_file_str, 100)
+    if ret:
+        log.info(f"Found vulnerability on fuzzing child xml tags!...")
+
+    # try fuzz xml attributes
+    form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
+    for each in form_string_chars:
+        badtxt =  fuzz_attri_xml(sample_file_str, each)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret:
+            log.info(f"Found vulnerability on fuzzing xml attributes!...")
+
+    return ret
+    
+
+def fuzz_jpg(binary:str, sample_input_path:str) -> int:
+    '''
+    Fuzz plaintext with mutated inputs.
+
+    Returns: return code of binary
+    '''
+    cmd = f'{binary}'
+
+    content = read(sample_input_path)
+
+    # try empty file
+    badjpg = empty_str()
+    cmdret = runfuzz(cmd, badjpg)
+    ret = detect_crash(cmdret, badjpg)
+    if ret:
+        return ret
+
+    # try large file
+    badjpg = PAD * 10000
+    cmdret = runfuzz(cmd, badjpg)
+    ret = detect_crash(cmdret, badjpg)
+    if ret:
+        return ret
 
     # return status would be 0 here
     return ret
