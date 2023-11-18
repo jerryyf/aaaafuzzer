@@ -34,7 +34,8 @@ when a crash is detected, a file called `bad.txt` is generated.
 ## Harness capabilities
 The harness is able to detect crashes that occuer when an invalid input is given.
 It also checks if there are infinite while loops by keeping track of the time. 
-If the time goes over a certain threshold, it will exit the program. 
+If the time goes over a certain threshold, it will exit the program. Additionally,
+it is also capable of a simple code coverage that improves efficiency of the fuzzer. 
 
 ## Bugs our fuzzer finds
 - Information leaks
@@ -113,15 +114,12 @@ an idea to create a front-end where users are able to drop binary files in,
 and our fuzzer would run, attempting to find vulnerabilities. Found vulnerabilites
 would then be printed into a file, which would then be given to the user. 
 
-# If we can, replace first sentence with: We were able to implement a simple
-# version of code coverage. However, we did not have time to integrate 
-# this with our fuzzer, which (<- replace from there) would greatly inrease the efficiency of our fuzzing ...
-# if we can't get code coverage.
-We were unable to figure out code coverage, but if this were to be 
-implemented it would greatly increase the efficiency of our fuzzing through
-coverage based mutation, which would ensure that all paths are covered. 
+We were able to implement a simple version of code coverage. However, we did not have
+time to integrate this with our fuzzer, which would greatly increase the efficiency of our 
+fuzzing through coverage based mutation, which would ensure that all paths are covered. 
 Being able to throughly test the whole program through coverage will give
 the greatest chance of finding security vulnerabilities and logic errors. 
 It also speeds up the fuzzing process it will allow the fuzzer to focus more
-on finding new paths rather then revisiting similar paths. 
+on finding new paths rather then revisiting similar paths. Thus, one major 
+improvement would be to implement a more refined and advanced version of code coverage.
 
