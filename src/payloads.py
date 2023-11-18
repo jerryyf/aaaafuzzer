@@ -13,6 +13,9 @@ logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(leve
 
 ITER = 200
 
+'''
+
+'''
 def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
     # read file from beginning
     binary_input.seek(0)

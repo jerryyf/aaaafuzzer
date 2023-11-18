@@ -36,7 +36,6 @@ The harness is able to detect crashes that occuer when an invalid input is given
 It also checks if there are infinite while loops by keeping track of the time. 
 If the time goes over a certain threshold, it will exit the program. 
 
-
 ## Bugs our fuzzer finds
 - Information leaks
 - Buffer overflow
@@ -75,7 +74,7 @@ with the CSV format. We will replace the specific value in the matrix with somet
 massive. 
 
 An example sample input is the following:
-`["a * 1000times", "b * 10000times"]`
+`["a" * 1000, "b" * 10000times]`
 
 ### For XML:
 The team tests XML for unexpected input such as empty file, fuzzing xml tags, 
@@ -85,15 +84,12 @@ and attributes, it will likely reveal any vulnerabilities by causing a segmentat
 fault. 
 
 An example sample input is the following:
-`somethingidk`
+`<content></content>`
 
-### For JPEG:
-The fuzzing of jpeg begins with the testing of an empty file and a large file and
+### For JPG:
+The fuzzing of jpg begins with the testing of an empty file and a large file and
 observing if such cases are handled correctly. If they are not, there will be a 
 segmentation fault, possible containing valuable information. 
-
-An example sample input is the following:
-`somethingidk`
 
 ### For Plaintext:
 We have constructed a variety of inputs testing for crashes. One such test is for 
@@ -104,7 +100,7 @@ formats, in addition to random mutations to further test if there are any
 vulnerabilities in all kinds of characters.
 
 An example sample input is the following:
-`somethingidk`
+`"sometext" * 10000`
 
 ## Improvements
 We did not do ELF nor PDF, thus adding support for these two formats would 
@@ -112,6 +108,15 @@ already be an improvement. Additionally, fuzzing for each format could have
 been more in-depth, focusing a bit more on other vulnerabilities at a higher
 level such as format strings and logic errors. 
 
+Although we did not have time to properly implement something awesome, we had
+an idea to create a front-end where users are able to drop binary files in, 
+and our fuzzer would run, attempting to find vulnerabilities. Found vulnerabilites
+would then be printed into a file, which would then be given to the user. 
+
+# If we can, replace first sentence with: We were able to implement a simple
+# version of code coverage. However, we did not have time to integrate 
+# this with our fuzzer, which (<- replace from there) would greatly inrease the efficiency of our fuzzing ...
+# if we can't get code coverage.
 We were unable to figure out code coverage, but if this were to be 
 implemented it would greatly increase the efficiency of our fuzzing through
 coverage based mutation, which would ensure that all paths are covered. 
@@ -120,6 +125,3 @@ the greatest chance of finding security vulnerabilities and logic errors.
 It also speeds up the fuzzing process it will allow the fuzzer to focus more
 on finding new paths rather then revisiting similar paths. 
 
-
-## Something Awesome
-Front-end stuff
