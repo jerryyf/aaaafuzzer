@@ -16,8 +16,8 @@ int main() {
     while (scanf("%10s%*c%10s%*c", key, value) != EOF) {
         if (strlen(key) >= MAX_KEY_LENGTH || strlen(value) >= MAX_VALUE_LENGTH) {
             printf("Key or value is too long! Triggering segmentation fault...\n");
-            char buffer[MAX_JSON_LENGTH];
-            strcpy(buffer, "overflow!");
+            char *ptr = NULL;
+            *ptr = 'x';
         } else {
             strcat(json_data, key);
             strcat(json_data, ":");
