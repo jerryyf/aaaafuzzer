@@ -36,6 +36,7 @@ def detect_codeflow_change_json(binary:str, jsondict:dict):
     payload = []
     ret_status = []
     cmd = f'{binary}'
+    cycle = 0
     while (cycle <= 2):
         cyclic_int = int(math.pow(10, cycle))
         
@@ -72,6 +73,6 @@ def detect_codeflow_change_json(binary:str, jsondict:dict):
             prev_Cyc = cyclic_int
             curr_Cyc = int(math.pow(10, cycle - 1))
             log.info(f'code flow changed - {cycle - 1} -> {cycle}')
-            break;
+            break
         
         cycle += 1

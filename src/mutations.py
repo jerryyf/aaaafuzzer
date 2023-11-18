@@ -107,6 +107,9 @@ def bigstr_value_json(sample_json:str, n:int) -> str:
 
 
 def bigkeys_json(sample_json:str, n:str) -> str:
+    '''
+    Takes a sample json and int power, replaces each key with a larger key.
+    '''
     for i in range(n):
         sample_json[str(i)] = str(i) # can make this random chars
     return str(sample_json).replace("'", '"')
