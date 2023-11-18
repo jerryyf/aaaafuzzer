@@ -7,7 +7,22 @@ from mutations import *
 import xml.etree.ElementTree as ET
 
 PAD = 'A'
+path = {}
 
+"""
+path = {
+    "1": (trivial; ret_number), #first_line(ret number) 
+    "2": (0-9a-zA-Z; ret_number), #menu # compare list(path.keys())[-1 and -2's ret_number]
+    "3":...
+}
+
+['trivial', '2']
+for each in list:
+runfuzz(cmd, each)
+runfuzz(cmd, list)
+
+"""
+    
 # config - debug level won't be logged
 logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s')
 
@@ -141,107 +156,152 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         for i in range(len(lines)):
             stripped_lines += lines[i].strip()
 
-    for i in range(0,10):
-        # try first line
-        print(f"wtf")
-        badtxt =first_line
-        cmdret = runfuzz(cmd, badtxt)
-        ret = detect_crash(cmdret, badtxt)
+    first_line = read_first_line(sample_input_path)
+    cmdret = runfuzz(cmd, first_line)
+    ret = detect_crash(cmdret, first_line)
+    value = f"{first_line}; {ret}"
+    path[1] = value
+    # print(path)
+    # if # compare ret same, go next, else fuzz
+    # try empty file
+
+    index = 0
+    while True:
         if ret < 0:
-            log.info('Found vulnerability on empty file!')
-            return ret
+            break
 
+        # if nth_line:
+        #     value = f"{nth_line}; {ret}"
+        #     path[index + 1] = value
 
-
-        # try empty file
-        badtxt = empty_str()
-        cmdret = runfuzz(cmd, badtxt)
-        ret = detect_crash(cmdret, badtxt)
-        if ret < 0:
-            log.info('Found vulnerability on empty file!')
-            return ret
-
-        # try large file
-        badtxt = PAD * 10000
-        cmdret = runfuzz(cmd, badtxt)
-        ret = detect_crash(cmdret, badtxt)
-        if ret < 0:
-            log.info('Found vulnerability on large file!')
-            return ret
-        
-        # try known ints
-        known_ints = [-1, 0, 127, 256, 1024, 65536, MAX_INT-1, MAX_INT]
-        for line in lines:
-            for i in known_ints:
-                badtxt = line + str(i)
-                cmdret = runfuzz(cmd, badtxt)
-                ret = detect_crash(cmdret, badtxt)
-                if ret < 0:
-                    log.info('Found vulnerability on known ints!')
-                    return ret
-
-        # try repeating sample input
-        badtxt = repeat_sample_input(content, 10)
-        cmdret = runfuzz(cmd, badtxt)
-        ret = detect_crash(cmdret, badtxt)
-        if ret < 0:
-            print(ret)
-            log.info('Found vulnerability on repeated input!')
-            return ret
-
-        # try bit flipping whole file
-        badtxt = random_char_flip(content)
-        for i in range(ITER):
-            badtxt = random_char_flip(badtxt)
+        if not compare_path_ret(path):
+            badtxt = empty_str()
             cmdret = runfuzz(cmd, badtxt)
             ret = detect_crash(cmdret, badtxt)
             if ret < 0:
-                log.info('Found vulnerability on bit flips!')
+                value = f"{badtxt}; {ret}"
+                generate_number_keys_dictionary(path, value)
+                log.info('Found vulnerability on empty file!')
                 return ret
 
-        # try bit flipping each line
-        for line in lines:
-            for i in range(len(line)):
-                badtxt = bit_flip(content, i)
+        if not compare_path_ret(path):
+            # try large file
+            badtxt = PAD * 10000
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                value = f"{badtxt}; {ret}"
+                generate_number_keys_dictionary(path, value)
+                log.info('Found vulnerability on large file!')
+                return ret
+        
+        # create a fuzzing menu, get list options and fuzz each in list with large file
+        # ASSUME MENU OPTION is eitheer int[1, 2, 3, 4] or [a, b, c, d...]
+
+
+        if not compare_path_ret(path):
+            # try known ints
+            known_ints = [-1, 0, 127, 256, 1024, 65536, MAX_INT-1, MAX_INT]
+            for line in lines:
+                for i in known_ints:
+                    badtxt = line + str(i)
+                    cmdret = runfuzz(cmd, badtxt)
+                    ret = detect_crash(cmdret, badtxt)
+                    if ret < 0:
+                        value = f"{badtxt}; {ret}"
+                        generate_number_keys_dictionary(path, value)
+                        log.info('Found vulnerability on known ints!')
+                        return ret
+
+        if not compare_path_ret(path):
+            # try repeating sample input
+            badtxt = repeat_sample_input(content, 10)
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                value = f"{badtxt}; {ret}"
+                generate_number_keys_dictionary(path, value)
+                log.info('Found vulnerability on repeated input!')
+                return ret
+
+        if not compare_path_ret(path):
+            # try bit flipping whole file
+            badtxt = random_char_flip(content)
+            for i in range(ITER):
+                badtxt = random_char_flip(badtxt)
                 cmdret = runfuzz(cmd, badtxt)
                 ret = detect_crash(cmdret, badtxt)
                 if ret < 0:
+                    value = f"{badtxt}; {ret}"
+                    generate_number_keys_dictionary(path, value)
                     log.info('Found vulnerability on bit flips!')
                     return ret
 
-        for line in lines:
-            bitflips = walking_bit_flip(line, 16) # First do 16 bit flips
-            for i in range(len(bitflips)):
-                # Assume the first line is password - TODO detect output change
-                badtxt = line + bitflips[i]
+        if not compare_path_ret(path):
+            # try bit flipping each line
+            for line in lines:
+                for i in range(len(line)):
+                    badtxt = bit_flip(content, i)
+                    cmdret = runfuzz(cmd, badtxt)
+                    ret = detect_crash(cmdret, badtxt)
+                    if ret < 0:
+                        value = f"{badtxt}; {ret}"
+                        generate_number_keys_dictionary(path, value)
+                        log.info('Found vulnerability on bit flips!')
+                        return ret
 
-                cmdret = runfuzz(cmd, badtxt)
-                ret = detect_crash(cmdret, badtxt)
-            if ret < 0:
-                log.info('Found vulnerability on bit flips!')
-                return ret
+        if not compare_path_ret(path):
+            for line in lines:
+                bitflips = walking_bit_flip(line, 16) # First do 16 bit flips
+                for i in range(len(bitflips)):
+                    # Assume the first line is password - TODO detect output change
+                    badtxt = line + bitflips[i]
+
+                    cmdret = runfuzz(cmd, badtxt)
+                    ret = detect_crash(cmdret, badtxt)
+                if ret < 0:
+                    value = f"{badtxt}; {ret}"
+                    generate_number_keys_dictionary(path, value)
+                    log.info('Found vulnerability on bit flips!')
+                    return ret
 
         # random mutations
-        for i in range(ITER):
-            badtxt = random_char_flip(content)
-            cmdret = runfuzz(cmd, badtxt)
-            ret = detect_crash(cmdret, badtxt)
-            if ret < 0:
-                log.info('Crashed with random char flip!')
-                return ret
+        if not compare_path_ret(path):
+            for i in range(ITER):
+                badtxt = random_char_flip(content)
+                cmdret = runfuzz(cmd, badtxt)
+                ret = detect_crash(cmdret, badtxt)
+                if ret < 0:
+                    value = f"{badtxt}; {ret}"
+                    generate_number_keys_dictionary(path, value)
+                    log.info('Crashed with random char flip!')
+                    return ret
 
         # random strings
-        for i in range(ITER):
-            badtxt = random_str()
-            cmdret = runfuzz(cmd, badtxt)
-            ret = detect_crash(cmdret, badtxt)
-            if ret < 0:
-                log.info('Crashed with random string!')
-                return ret
-            
+        if not compare_path_ret(path):
+            for i in range(ITER):
+                badtxt = random_str()
+                cmdret = runfuzz(cmd, badtxt)
+                ret = detect_crash(cmdret, badtxt)
+                if ret < 0:
+                    value = f"{badtxt}; {ret}"
+                    generate_number_keys_dictionary(path, value)
+                    log.info('Crashed with random string!')
+                    return ret
 
+        index += 1
+        if not read_index_line(index, sample_input_path):
+            break
+
+        nth_line = read_index_line(index, sample_input_path)
+        print(nth_line)
+        cmdret = runfuzz(cmd, nth_line)
+        ret = detect_crash(cmdret, nth_line)
+        value = f"{nth_line}; {ret}"
+        path[index + 1] = value
+        # print(path)
         # return status would be 0 here
-        return ret
+    return ret
 
 
 '''

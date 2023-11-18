@@ -147,10 +147,42 @@ def read_first_line(sample_file_str) -> str:
         Lines = f.readlines()
         first_line = Lines[0].strip()
         if first_line:
-            print(first_line)
+            return first_line
+    return None
 
+def read_index_line(index, sample_file_str) -> str:
+    # read file nth line from given index
+    with open(sample_file_str, 'r') as f:
+        Lines = f.readlines()
+        if 0 <= index < len(Lines):
+            the_line = Lines[index].strip()
+            if the_line:
+                return the_line
+        return None 
 
+def read_file_lines(sample_file_str) -> int:
+    # read file nth line from given index
+    with open(sample_file_str, 'r') as f:
+        index = 0
+        Lines = f.readlines()
+        for line in Lines:
+            index += 1
+    return index
 
+def generate_number_keys_dictionary(path, value):
+    key_num = len(path)
+    path[key_num] = value
+    return path
+
+def compare_path_ret(path) -> bool:
+    if len(path) <= 2:
+        return False
+    
+    last = list(path.keys())[-1]
+    sec_last = list(path.keys())[-2]
+    if last.split("; ")[1] != sec_last.split("; ")[1]:
+        return False
+    return True
 
 
 
