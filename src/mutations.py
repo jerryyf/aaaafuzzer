@@ -140,6 +140,20 @@ def generate_nested_contents(sample_file_str):
         
     return ET.tostring(root).decode()
 
+
+def read_first_line(sample_file_str) -> str:
+    # read file from beginning
+    with open(sample_file_str, 'r') as f:
+        Lines = f.readlines()
+        first_line = Lines[0].strip()
+        if first_line:
+            print(first_line)
+
+
+
+
+
+
 '''
 Takes sample xml, mutate string attributes
 '''

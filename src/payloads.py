@@ -20,7 +20,7 @@ def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
 
     for i in range(0, 100):
         badpayload = (payload * i * 100)
-
+    
     cmdret = runfuzz(binary_file, badpayload)
     return detect_crash(cmdret, sample_file_str)
 
@@ -132,6 +132,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     Returns: return code of binary
     '''
     cmd = f'{binary}'
+    first_line = read_first_line(sample_input_path)
 
     with open(sample_input_path, 'r') as inf:
         content = inf.read()
@@ -140,93 +141,107 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         for i in range(len(lines)):
             stripped_lines += lines[i].strip()
 
-    # try empty file
-    badtxt = empty_str()
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret < 0:
-        log.info('Found vulnerability on empty file!')
-        return ret
-
-    # try large file
-    badtxt = PAD * 10000
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret < 0:
-        log.info('Found vulnerability on large file!')
-        return ret
-    
-    # try known ints
-    known_ints = [-1, 0, 127, 256, 1024, 65536, MAX_INT-1, MAX_INT]
-    for line in lines:
-        for i in known_ints:
-            badtxt = line + str(i)
-            cmdret = runfuzz(cmd, badtxt)
-            ret = detect_crash(cmdret, badtxt)
-            if ret < 0:
-                log.info('Found vulnerability on known ints!')
-                return ret
-
-    # try repeating sample input
-    badtxt = repeat_sample_input(content, 10)
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret < 0:
-        log.info('Found vulnerability on repeated input!')
-        return ret
-
-    # try bit flipping whole file
-    badtxt = random_char_flip(content)
-    for i in range(ITER):
-        badtxt = random_char_flip(badtxt)
+    for i in range(0,10):
+        # try first line
+        print(f"wtf")
+        badtxt =first_line
         cmdret = runfuzz(cmd, badtxt)
         ret = detect_crash(cmdret, badtxt)
         if ret < 0:
-            log.info('Found vulnerability on bit flips!')
+            log.info('Found vulnerability on empty file!')
             return ret
 
-    # try bit flipping each line
-    for line in lines:
-        for i in range(len(line)):
-            badtxt = bit_flip(content, i)
+
+
+        # try empty file
+        badtxt = empty_str()
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info('Found vulnerability on empty file!')
+            return ret
+
+        # try large file
+        badtxt = PAD * 10000
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info('Found vulnerability on large file!')
+            return ret
+        
+        # try known ints
+        known_ints = [-1, 0, 127, 256, 1024, 65536, MAX_INT-1, MAX_INT]
+        for line in lines:
+            for i in known_ints:
+                badtxt = line + str(i)
+                cmdret = runfuzz(cmd, badtxt)
+                ret = detect_crash(cmdret, badtxt)
+                if ret < 0:
+                    log.info('Found vulnerability on known ints!')
+                    return ret
+
+        # try repeating sample input
+        badtxt = repeat_sample_input(content, 10)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            print(ret)
+            log.info('Found vulnerability on repeated input!')
+            return ret
+
+        # try bit flipping whole file
+        badtxt = random_char_flip(content)
+        for i in range(ITER):
+            badtxt = random_char_flip(badtxt)
             cmdret = runfuzz(cmd, badtxt)
             ret = detect_crash(cmdret, badtxt)
             if ret < 0:
                 log.info('Found vulnerability on bit flips!')
                 return ret
 
-    for line in lines:
-        bitflips = walking_bit_flip(line, 16) # First do 16 bit flips
-        for i in range(len(bitflips)):
-            # Assume the first line is password - TODO detect output change
-            badtxt = line + bitflips[i]
+        # try bit flipping each line
+        for line in lines:
+            for i in range(len(line)):
+                badtxt = bit_flip(content, i)
+                cmdret = runfuzz(cmd, badtxt)
+                ret = detect_crash(cmdret, badtxt)
+                if ret < 0:
+                    log.info('Found vulnerability on bit flips!')
+                    return ret
 
+        for line in lines:
+            bitflips = walking_bit_flip(line, 16) # First do 16 bit flips
+            for i in range(len(bitflips)):
+                # Assume the first line is password - TODO detect output change
+                badtxt = line + bitflips[i]
+
+                cmdret = runfuzz(cmd, badtxt)
+                ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                log.info('Found vulnerability on bit flips!')
+                return ret
+
+        # random mutations
+        for i in range(ITER):
+            badtxt = random_char_flip(content)
             cmdret = runfuzz(cmd, badtxt)
             ret = detect_crash(cmdret, badtxt)
-        if ret < 0:
-            log.info('Found vulnerability on bit flips!')
-            return ret
+            if ret < 0:
+                log.info('Crashed with random char flip!')
+                return ret
 
-    # random mutations
-    for i in range(ITER):
-        badtxt = random_char_flip(content)
-        cmdret = runfuzz(cmd, badtxt)
-        ret = detect_crash(cmdret, badtxt)
-        if ret < 0:
-            log.info('Crashed with random char flip!')
-            return ret
+        # random strings
+        for i in range(ITER):
+            badtxt = random_str()
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                log.info('Crashed with random string!')
+                return ret
+            
 
-    # random strings
-    for i in range(ITER):
-        badtxt = random_str()
-        cmdret = runfuzz(cmd, badtxt)
-        ret = detect_crash(cmdret, badtxt)
-        if ret < 0:
-            log.info('Crashed with random string!')
-            return ret
-
-    # return status would be 0 here
-    return ret
+        # return status would be 0 here
+        return ret
 
 
 '''
@@ -234,72 +249,164 @@ Generate and run a XML bad.txt against binary. Log, write the bad input to bad.t
 
 Returns: the return code of the binary
 '''
+# def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
+#     cmd = f'{binary_file}'
+#     # read file from beginning
+#     with open(sample_file_str, 'r') as f:
+#         f.seek(0)
+#         payload = f.read()
+#     # grab the root element from payload and copy all subchild 
+#     root = ET.fromstring(payload)
+#     head = copy.deepcopy(root)
+#     # append child elements into payload
+#     for i in range(FUZZ_NUM):
+#         tail = copy.deepcopy(head)
+#         root.append(tail)
+#         bad = ET.tostring(root).decode()
+#         cmdret = runfuzz(cmd, bad)
+#         ret = detect_crash(cmdret, bad)
+#         if ret < 0:
+#             return ret
+
+#     return ret
+
 def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
-    cmd = f'{binary_file}'
-    # read file from beginning
-    with open(sample_file_str, 'r') as f:
-        f.seek(0)
-        payload = f.read()
-    # grab the root element from payload and copy all subchild 
-    root = ET.fromstring(payload)
-    head = copy.deepcopy(root)
-    # append child elements into payload
-    for i in range(FUZZ_NUM):
-        tail = copy.deepcopy(head)
-        root.append(tail)
-        bad = ET.tostring(root).decode()
-        cmdret = runfuzz(cmd, bad)
-        ret = detect_crash(cmdret, bad)
-        if ret < 0:
-            return ret
-
-    return ret
-
+    try:
+        cmd = f'{binary_file}'
+        # read file from beginning
+        with open(sample_file_str, 'r') as f:
+            f.seek(0)
+            payload = f.read()
+        # grab the root element from payload and copy all subchild 
+        root = ET.fromstring(payload)
+        head = copy.deepcopy(root)
+        # append child elements into payload
+        for i in range(FUZZ_NUM):
+            tail = copy.deepcopy(head)
+            root.append(tail)
+            bad = ET.tostring(root).decode()
+            cmdret = runfuzz(cmd, bad)
+            ret = detect_crash(cmdret, bad)
+            if ret < 0:
+                return ret
+        return ret
+    except ET.ParseError as e:
+        pass
 
 def fuzz_xml(binary_file, sample_file_str) -> int:
-    cmd = f'{binary_file}'
+    try:
+        cmd = f'{binary_file}'
 
-    # try empty xml 
-    badtxt = empty_xml()
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret < 0:
-        log.info(f"Found vulnerability on empty xml!...")
-        return ret
-
-    # try nested xml tags
-    badtxt = nested_tags_xml()
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret < 0:
-        log.info(f"Found vulnerability on nested xml tags!...")
-        return ret
-
-    # try tested xml contents
-    badtxt = generate_nested_contents(sample_file_str)
-    cmdret = runfuzz(cmd, badtxt)
-    ret = detect_crash(cmdret, badtxt)
-    if ret < 0:
-        log.info(f"Found vulnerability on nested content xml!...")
-        return ret
-
-    # try fuzz child tags
-    ret = fuzz_child_tags(binary_file, sample_file_str, 100)
-    if ret < 0:
-        log.info(f"Found vulnerability on fuzzing child xml tags!...")
-        return ret
-
-    # try fuzz xml attributes
-    form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
-    for each in form_string_chars:
-        badtxt =  fuzz_attri_xml(sample_file_str, each)
+        # try empty xml 
+        badtxt = empty_xml()
         cmdret = runfuzz(cmd, badtxt)
         ret = detect_crash(cmdret, badtxt)
         if ret < 0:
-            log.info(f"Found vulnerability on fuzzing xml attributes!...")
+            log.info(f"Found vulnerability on empty xml!...")
             return ret
 
-    return ret
+        # try nested xml tags
+        badtxt = nested_tags_xml()
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info(f"Found vulnerability on nested xml tags!...")
+            return ret
+
+        # try tested xml contents
+        badtxt = generate_nested_contents(sample_file_str)
+        try:
+            root = ET.fromstring(badtxt)
+        except Exception as e:
+            log.error(f"Error during XML parsing: {e}", exc_info=True)
+            return -1
+
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info(f"Found vulnerability on nested content xml!...")
+            return ret
+
+        # try fuzz child tags
+        ret = fuzz_child_tags(binary_file, sample_file_str, 100)
+        if ret < 0:
+            log.info(f"Found vulnerability on fuzzing child xml tags!...")
+            return ret
+
+        # try fuzz xml attributes
+        form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
+        for each in form_string_chars:
+            badtxt = fuzz_attri_xml(sample_file_str, each)
+            try:
+                root = ET.fromstring(badtxt)
+            except Exception as e:
+                log.error(f"Error during XML parsing: {e}", exc_info=True)
+                return -1
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                log.info(f"Found vulnerability on fuzzing xml attributes!...")
+                return ret
+
+        return ret
+    except Exception as e:
+        log.error(f"Unexpected error during XML fuzzing: {e}", exc_info=True)
+        return -1
+
+
+
+
+
+# def fuzz_xml(binary_file, sample_file_str) -> int:
+#     try:
+#         cmd = f'{binary_file}'
+
+#         # try empty xml 
+#         badtxt = empty_xml()
+#         cmdret = runfuzz(cmd, badtxt)
+#         ret = detect_crash(cmdret, badtxt)
+#         if ret < 0:
+#             log.info(f"Found vulnerability on empty xml!...")
+#             return ret
+
+#         # try nested xml tags
+#         badtxt = nested_tags_xml()
+#         cmdret = runfuzz(cmd, badtxt)
+#         ret = detect_crash(cmdret, badtxt)
+#         if ret < 0:
+#             log.info(f"Found vulnerability on nested xml tags!...")
+#             return ret
+
+#         # try tested xml contents
+#         badtxt = generate_nested_contents(sample_file_str)
+#         cmdret = runfuzz(cmd, badtxt)
+#         ret = detect_crash(cmdret, badtxt)
+#         if ret < 0:
+#             log.info(f"Found vulnerability on nested content xml!...")
+#             return ret
+
+#         # try fuzz child tags
+#         ret = fuzz_child_tags(binary_file, sample_file_str, 100)
+#         if ret < 0:
+#             log.info(f"Found vulnerability on fuzzing child xml tags!...")
+#             return ret
+
+#         # try fuzz xml attributes
+#         form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
+#         for each in form_string_chars:
+#             badtxt =  fuzz_attri_xml(sample_file_str, each)
+#             cmdret = runfuzz(cmd, badtxt)
+#             ret = detect_crash(cmdret, badtxt)
+#             if ret < 0:
+#                 log.info(f"Found vulnerability on fuzzing xml attributes!...")
+#                 return ret
+
+#         return ret
+#     except ET.ParseError as e:
+#         # print(f"====================================")
+#         pass
+    
+
 
 def fuzz_jpg(binary:str, sample_input_path:str) -> int:
     '''
