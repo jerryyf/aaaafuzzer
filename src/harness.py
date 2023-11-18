@@ -13,7 +13,7 @@ def detect_crash(proc:CompletedProcess[str], input:str) -> int:
 
     Returns process return code.
     '''
-    if proc.returncode != 0:
+    if proc.returncode < 0:
         logging.critical(f'Crashed with input {input}')
         log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated in current directory.')
         with open('./bad.txt', 'w') as outf:
