@@ -16,8 +16,8 @@ void process_json(char *json) {
             token = strtok(NULL, delimiters);
             if (token != NULL && strlen(token) > MAX_VALUE_LENGTH) {
                 printf("Value is too big! Triggering segmentation fault...\n");
-                char buffer[MAX_VALUE_LENGTH];
-                strcpy(buffer, "overflow!"); // Buffer overflow here
+                char *ptr = NULL;
+                *ptr = 'x';
             }
         }
         token = strtok(NULL, delimiters);
