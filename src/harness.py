@@ -13,7 +13,7 @@ def detect_crash(proc:CompletedProcess[str], input:str) -> int:
 
     Returns process return code.
     '''
-    if proc.returncode != 0:
+    if proc.returncode < 0:
         logging.critical(f'Crashed with input {input}')
         log.critical(f'Program crashed, returned {proc.returncode}. Check /tmp/aaaalog for details. bad.txt generated in current directory.')
         with open('./bad.txt', 'w') as outf:
@@ -35,7 +35,7 @@ def max_runtime_kill(curr_time) -> bool:
 def detect_codeflow_change_json(binary:str, jsondict:dict):
     payload = []
     ret_status = []
-    cmd = f'./{binary}'
+    cmd = f'{binary}'
     while (cycle <= 2):
         cyclic_int = int(math.pow(10, cycle))
         
