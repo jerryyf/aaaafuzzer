@@ -35,7 +35,7 @@ def max_runtime_kill(curr_time) -> bool:
 def detect_codeflow_change_json(binary:str, jsondict:dict):
     payload = []
     ret_status = []
-    cmd = f'./{binary}'
+    cmd = f'{binary}'
     while (cycle <= 2):
         cyclic_int = int(math.pow(10, cycle))
         

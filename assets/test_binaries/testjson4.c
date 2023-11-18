@@ -15,8 +15,8 @@ int main() {
     while (scanf("%s", buffer) != EOF) {
         if (record_count >= MAX_RECORDS) {
             printf("Too many records! Triggering segmentation fault...\n");
-            char overflow[RECORD_SIZE];
-            strcpy(overflow, "overflow!");
+            char *ptr = NULL;
+            *ptr = 'x';
         } else {
             strcpy(records[record_count], buffer);
             record_count++;

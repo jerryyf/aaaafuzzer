@@ -46,7 +46,20 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
     cmdret = runfuzz(binary_file, badpayload)
     return detect_crash(cmdret, sample_file_str)
 
+def fuzz_add(binary_file, binary_input, sample_file_str):
+    binary_input.seek(0)
+    payload = binary_input.readline().strip()
 
+    for i in range(1, 100):
+        # Repeat the initial payload 'i' times
+        badpayload = ','.join([payload] * i)
+    
+    cmdret = runfuzz(binary_file, badpayload)
+    ret = detect_crash(cmdret, sample_file_str)
+    if ret != 0:
+        return ret  # Exit early if crash is detected
+    return 0
+    
 def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
     ret = fuzz_rows(binary_file, binary_input, sample_file_str)
     if ret < 0:
@@ -55,6 +68,11 @@ def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
 
     ret = fuzz_colns(binary_file, binary_input, sample_file_str)
     if ret < 0:
+        log.info(f"Found vulnerability on fuzzing columns!...")
+        return ret
+        
+    ret = fuzz_add(binary_file, binary_input, sample_file_str)
+    if ret:
         log.info(f"Found vulnerability on fuzzing columns!...")
         return ret
     return ret
@@ -217,7 +235,7 @@ Generate and run a XML bad.txt against binary. Log, write the bad input to bad.t
 Returns: the return code of the binary
 '''
 def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
-    cmd = f'./{binary_file}'
+    cmd = f'{binary_file}'
     # read file from beginning
     with open(sample_file_str, 'r') as f:
         f.seek(0)
@@ -234,11 +252,12 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
         ret = detect_crash(cmdret, bad)
         if ret < 0:
             return ret
+
     return ret
 
 
 def fuzz_xml(binary_file, sample_file_str) -> int:
-    cmd = f'./{binary_file}'
+    cmd = f'{binary_file}'
 
     # try empty xml 
     badtxt = empty_xml()
@@ -246,6 +265,7 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
     ret = detect_crash(cmdret, badtxt)
     if ret < 0:
         log.info(f"Found vulnerability on empty xml!...")
+        return ret
 
     # try nested xml tags
     badtxt = nested_tags_xml()
@@ -253,6 +273,7 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
     ret = detect_crash(cmdret, badtxt)
     if ret < 0:
         log.info(f"Found vulnerability on nested xml tags!...")
+        return ret
 
     # try tested xml contents
     badtxt = generate_nested_contents(sample_file_str)
@@ -260,11 +281,13 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
     ret = detect_crash(cmdret, badtxt)
     if ret < 0:
         log.info(f"Found vulnerability on nested content xml!...")
+        return ret
 
     # try fuzz child tags
     ret = fuzz_child_tags(binary_file, sample_file_str, 100)
     if ret < 0:
         log.info(f"Found vulnerability on fuzzing child xml tags!...")
+        return ret
 
     # try fuzz xml attributes
     form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
@@ -274,6 +297,7 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
         ret = detect_crash(cmdret, badtxt)
         if ret < 0:
             log.info(f"Found vulnerability on fuzzing xml attributes!...")
+            return ret
 
     return ret
 
