@@ -49,6 +49,10 @@ if __name__ == '__main__':
             log.info("Detected XML file format from given sample input.")
             if fuzz_xml(binary_file, sample_file_str) == 0:
                 log.warn("No crashes detected.")
+        case 'jpeg':
+            log.info("Detected JPEG file format from given sample input.") 
+            if fuzz_jpg(binary_file, sample_file_str) == 0:
+                log.warn("No crashes detected.")
         case _:
             log.info("Unknown input file format, treating as plaintext.")
             if fuzz_plaintext(binary_file, sample_file_str) == 0:

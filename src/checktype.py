@@ -10,5 +10,7 @@ def check_type(sample_binary_str):
         return 'json'
     elif 'HTML document' in ret.stdout:
         return 'xml'
+    elif 'JPEG' in ret.stdout:
+        return 'jpeg'
     elif 'ASCII text' in ret.stdout:
         return 'plaintext'

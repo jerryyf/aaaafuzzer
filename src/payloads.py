@@ -177,7 +177,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             ret = detect_crash(cmdret, badtxt)
         if ret:
             return ret
-        
+
     # random mutations
     for i in range(ITER):
         badtxt = random_char_flip(content)
@@ -186,7 +186,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         if ret:
             log.info('Crashed with random char flip!')
             return ret
-    
+
     # random strings
     for i in range(ITER):
         badtxt = random_str()
@@ -197,7 +197,6 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             return ret
 
     # return status would be 0 here
-    return ret
     return ret
 
 
@@ -267,3 +266,30 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
 
     return ret
     
+
+def fuzz_jpg(binary:str, sample_input_path:str) -> int:
+    '''
+    Fuzz plaintext with mutated inputs.
+
+    Returns: return code of binary
+    '''
+    cmd = f'{binary}'
+
+    content = read(sample_input_path)
+
+    # try empty file
+    badjpg = empty_str()
+    cmdret = runfuzz(cmd, badjpg)
+    ret = detect_crash(cmdret, badjpg)
+    if ret:
+        return ret
+
+    # try large file
+    badjpg = PAD * 10000
+    cmdret = runfuzz(cmd, badjpg)
+    ret = detect_crash(cmdret, badjpg)
+    if ret:
+        return ret
+
+    # return status would be 0 here
+    return ret
