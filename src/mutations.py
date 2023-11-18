@@ -38,6 +38,7 @@ def repeat_sample_input(sample_input, n) -> str:
 def bit_flip(sample_input:str, pos:int) -> str:
     '''
     Basic helper to flip bit of sample_input as position pos.
+    Sample input cannot exceed str() conversion length
     '''
     sample_int = int.from_bytes(sample_input.encode(), 'little') # little endian for x86 32 bit arch
     mask = 1 << pos
@@ -71,13 +72,30 @@ def random_char_flip(sample_input:str) -> str:
 def random_str(len:int=100, char_start:int=32, char_range:int=32) -> str:
     '''
     A string of up to `max_length` characters
-       in the range [`char_start`, `char_start` + `char_range`)
+    in the range [`char_start`, `char_start` + `char_range`)
     '''
     strlen = random.randrange(0, len + 1)
     ret = ''
     for i in range(0, strlen):
         ret += chr(random.randrange(char_start, char_start + char_range))
     # print(ret)
+    return ret
+
+def mutate_file_header(sample_input:bytes) -> str:
+    '''
+    Given a binary file (such as jpg or pdf)
+    mofifies the first 4 bytes randomly.
+    '''
+    input_arr = bytearray(sample_input)
+    random_header = [random.randrange(0, 255),
+                  random.randrange(0, 255),
+                  random.randrange(0, 255),
+                  random.randrange(0, 255)]
+    new_arr = bytearray([0,0,0,0])
+    for i in range(len(random_header)):
+        new_arr[i] = random_header[i]
+    
+    ret = bytes(new_arr)
     return ret
 
 def n_empty_json(n:int) -> str:

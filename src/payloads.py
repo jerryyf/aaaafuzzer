@@ -175,8 +175,8 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         log.info('Found vulnerability on repeated input!')
         return ret
 
-    # try bit flipping whole file
-    badtxt = random_char_flip(content)
+    # try bit flipping whole file, mutating ITER amount of times
+    badtxt = content
     for i in range(ITER):
         badtxt = random_char_flip(badtxt)
         cmdret = runfuzz(cmd, badtxt)
@@ -185,10 +185,11 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             log.info('Found vulnerability on bit flips!')
             return ret
 
-    # try bit flipping each line
+    # try bit flipping each line, constantly mutating ITER amount of times
+    badtxt = content
     for line in lines:
-        for i in range(len(line)):
-            badtxt = bit_flip(content, i)
+        for i in range(ITER):
+            badtxt = random_char_flip(badtxt)
             cmdret = runfuzz(cmd, badtxt)
             ret = detect_crash(cmdret, badtxt)
             if ret < 0:
@@ -326,5 +327,17 @@ def fuzz_jpg(binary:str, sample_input_path:str) -> int:
     if ret < 0:
         log.info('Found vulnerability on large file!')
         return ret
+    
+    # try mutating file header randomly
+    badjpg = content
+    print(bytes(bytearray(badjpg)[:4]))
+    for i in range(ITER):
+        byte = mutate_file_header(badjpg)
+        # print(bytearray(badjpg[:4]))
+        cmdret = runfuzz_bin(cmd, byte)
+        ret = detect_crash(cmdret, byte)
+        if ret < 0:
+            return ret
+
     # return status would be 0 here
     return ret

@@ -9,5 +9,8 @@ def usage():
 def curr_time_taken(init_time) -> float:
     return time.time() - init_time
 
-def runfuzz(cmd, bad_input):
+def runfuzz(cmd:str, bad_input:str):
     return subprocess.run(cmd, input=bad_input, stdout=subprocess.PIPE, text=True)
+
+def runfuzz_bin(cmd:str, bad_input:bytes):
+    return subprocess.run(cmd, input=bad_input, stdout=subprocess.PIPE)
