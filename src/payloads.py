@@ -169,11 +169,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     while True:
         if ret < 0:
             break
-
-        # if nth_line:
-        #     value = f"{nth_line}; {ret}"
-        #     path[index + 1] = value
-
+        
         if not compare_path_ret(path):
             badtxt = empty_str()
             cmdret = runfuzz(cmd, badtxt)
@@ -289,6 +285,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
                     log.info('Crashed with random string!')
                     return ret
 
+        # update sample line index
         index += 1
         if not read_index_line(index, sample_input_path):
             break
@@ -299,8 +296,6 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         ret = detect_crash(cmdret, nth_line)
         value = f"{nth_line}; {ret}"
         path[index + 1] = value
-        # print(path)
-        # return status would be 0 here
     return ret
 
 
