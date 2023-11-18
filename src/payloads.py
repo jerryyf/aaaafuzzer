@@ -293,6 +293,7 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
 
     # try fuzz child tags
     ret = fuzz_child_tags(binary_file, sample_file_str, 100)
+    print(ret)
     if ret < 0:
         log.info(f"Found vulnerability on fuzzing child xml tags!...")
         return ret

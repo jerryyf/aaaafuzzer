@@ -1,15 +1,14 @@
 /*
 XML test:
-- Crashes on new line
+- Crashes on empty XML file
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 void process_xml_data(char *xml_data) {
-    if (xml_data[0] == '\0') {
-        printf("Empty XML data! Triggering segmentation fault...\n");
+    if (strcmp(xml_data, "<></>") == 0) {
+        printf("Empty XML data. Triggering segmentation fault...\n");
         char *ptr = NULL;
         *ptr = "x";
         exit(EXIT_FAILURE);

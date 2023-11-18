@@ -28,12 +28,16 @@
 # ./fuzzer ../assets/test_binaries/testjson4 ../assets/json1.txt
 # ./fuzzer ../assets/test_binaries/testjson5 ../assets/json1.txt
 
-
 # # Test Binaries for CSV
 # ./fuzzer ../assets/test_binaries/testcsv1 ../assets/csv1.txt
 # ./fuzzer ../assets/test_binaries/testcsv2 ../assets/csv1.txt
 # ./fuzzer ../assets/test_binaries/testcsv3 ../assets/csv1.txt
-./fuzzer ../assets/test_binaries/testxml ../assets/xml1.txt
+
+# # Test Binaries for XML
+# ./fuzzer ../assets/test_binaries/testxml1 ../assets/xml1.txt
+# ./fuzzer ../assets/test_binaries/testxml2 ../assets/xml1.txt
+# ./fuzzer ../assets/test_binaries/testxml3 ../assets/xml1.txt
+# ./fuzzer ../assets/test_binaries/testxml3 ../assets/xml1.txt
 
 # ./fuzzer ../assets/xml1 ../assets/xml1.txt
 # ./fuzzer ../assets/xml2 ../assets/xml2.txt
