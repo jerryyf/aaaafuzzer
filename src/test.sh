@@ -13,7 +13,11 @@
 # ./fuzzer ../assets/csv1 ../assets/csv1.txt
 # ./fuzzer ../assets/csv2 ../assets/csv2.txt
 
-./fuzzer ../assets/test_binaries/testplaintext1 ../assets/test_binaries/test1.txt
+## added for coverage testing CHSNGE LATER
+# ./fuzzer ../assets/test_binaries/testplaintext1 ../assets/test_binaries/test1.txt
+# ./fuzzer ../assets/test_binaries/testplaintext2 ../assets/test_binaries/test2.txt
+./fuzzer ../assets/test_binaries/testplaintext3 ../assets/test_binaries/test3.txt
+
 
 # ./fuzzer ../assets/plaintext1 ../assets/plaintext1.txt
 # ./fuzzer ../assets/plaintext2 ../assets/plaintext2.txt

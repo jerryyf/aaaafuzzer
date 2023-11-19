@@ -180,10 +180,27 @@ def compare_path_ret(path) -> bool:
     
     last = list(path.keys())[-1]
     sec_last = list(path.keys())[-2]
-    if last.split("; ")[1] != sec_last.split("; ")[1]:
+    if last != sec_last:
         return False
     return True
 
+def get_char_menu_list():
+    menu = []
+    for i in range(26):
+        menu.append(chr(ord('a') + i))
+    return menu
+
+def get_num_menu_list():
+    menu = []
+    for i in range(10):
+        menu.append(str(i))
+    return menu
+
+def get_payload_length(bad_input) -> int:
+    payload_length = len(bad_input)
+    payload_length += len(bad_input[0]) - 1
+    print(f"payload len: {payload_length}")
+    return payload_length
 
 
 '''
