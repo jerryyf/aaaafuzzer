@@ -36,6 +36,9 @@ The harness is able to detect crashes that occuer when an invalid input is given
 It also checks if there are infinite while loops by keeping track of the time. 
 If the time goes over a certain threshold, it will exit the program. Additionally,
 it is also capable of a simple code coverage that improves efficiency of the fuzzer. 
+The code coverage works by exploring the avaliable menu options, going down multiple paths.
+It first tries to crash the input buffer that is in the end of the longest path, 
+and works its way backwards, attempting to crash the previous menu until the start menu.
 
 ## Bugs our fuzzer finds
 - Information leaks
