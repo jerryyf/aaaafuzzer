@@ -1,4 +1,4 @@
-# custom test binaries
+# # custom test binaries
 
 # ./fuzzer ../assets/test_binaries/testjson1 ../assets/json1.txt
 # ./fuzzer ../assets/test_binaries/testjson2 ../assets/json1.txt

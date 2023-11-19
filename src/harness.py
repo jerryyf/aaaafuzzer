@@ -20,8 +20,17 @@ def detect_crash(proc:CompletedProcess[str], input:str) -> int:
             outf.write(input)
     # in any case, add to list of outputs and log
     stdouts.append(proc.stdout)
-    logging.info('Input tried:\n' + input)
-    logging.info('Program output:\n' + proc.stdout)
+    try:
+        logging.info('Input tried:\n' + input)
+    except:
+        logging.info('Binary input tried:')
+        logging.info(bytearray(input)[:4])
+    try:
+        logging.info('Program output:\n' + proc.stdout)
+    except:
+        logging.info('Binary program output:')
+        logging.info(bytearray(input)[:4])
+
     return proc.returncode
 
 def max_runtime_kill(curr_time) -> bool:

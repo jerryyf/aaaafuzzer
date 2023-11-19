@@ -22,3 +22,11 @@ def runfuzz(cmd, bad_input):
     Return: Check value of the process
     '''
     return subprocess.run(cmd, input=bad_input, stdout=subprocess.PIPE, text=True)
+
+def runfuzz_bin(cmd:str, bad_input:bytes):
+    '''
+    Wrapper for spawning process that takes binary input
+
+    Return: Check value of the process
+    '''
+    return subprocess.run(cmd, input=bad_input, stdout=subprocess.PIPE)
