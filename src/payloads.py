@@ -165,8 +165,8 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     # generate menu options
     letter_list = get_char_menu_list()
     option_list = get_num_menu_list()
-    for each in letter_list:
-        option_list.append(each)
+    # for each in letter_list:
+    #     option_list.append(each)
 
     # working for multiple menu
     MANYMENU = 0
@@ -180,27 +180,23 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         # test nested menus
         for i in range(4):
             inp.append(each)
-            # print(f"inp: {inp}")
-            nextnextinp = []
-            for all in inp:
-                nextnextinp.append(all)
-            nextnextinp.append(each)
-            nextnextinp.append(each)
+            print(f"INP: {inp}")
+            for all in options:
+                all[0] = inp
+            print(f"OPTIONNNNL: {options}")
 
-            # print(f"nextnextinp: {nextnextinp}")
-            # nextnextres = runfuzzoptions(cmd, nextnextinp, 1)
             res = runfuzzoptions(cmd, inp, 1)
             if res.returncode == 0:
                 tmp = []
 
                 tmp.append(inp)
-                payload = PAD * 10000
+                payload = PAD * 100
                 tmp.append(payload)
                 testtmp = tmp
                 testtmp.append("wtfwtf")
                 testtmp.append("wtfwtf")
 
-                print(testtmp)
+
                 nextres = runfuzzoptions(cmd, testtmp, 1)
                 if nextres == False:
                     check = 1
@@ -218,26 +214,38 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
 
                 options.append(tmp)
 
-                print(f"options[0]: {options[0][0]}")
+                print(f"options: {options}")
                 
                 value = f"{ret}"
                 # print(tmp.append("wtfwtf"))
                 break
             
+            print(f"\n HERE INP: {inp}")
+            print(f"HERE menutmp: {options}")
+            for each in options:
+                each[0] = inp
+            
             print(f"OPTIONS: {options}")
             for any in options:
-                payload = 'B'*10000
-                cmdret = runfuzzoptions(cmd, any, 0)
-                # print(any)
+                payload = 'A'*10000
+                print(f"any: {any}")
+                cmdret = runfuzzsingleoption(cmd, any)
                 ret = detect_crash(cmdret, payload)
+                print(cmdret)
                 if ret < 0:
                     return ret
                 # print(f"WTFWTFWT: {any}")
-
             
-
             check = 1
             break
+        for any in options:
+            payload = 'A'*10000
+            print(f"any: {any}")
+            cmdret = runfuzzoptions(cmd, any, 0)
+            ret = detect_crash(cmdret, payload)
+            print(cmdret)
+            if ret < 0:
+                return ret
         
         # payload = 'B'*10000
         # cmdret = runfuzz(cmd, payload)
@@ -263,19 +271,20 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             if ret < 0:
                 break
             
-            if not skip:
-                if not compare_path_ret(path):
-                    badtxt = []
-                    badtxt.append(each)
+            
+            if not compare_path_ret(path):
+                badtxt = []
+                badtxt.append(each)
 
-                    print(f"badtxt at payload : {badtxt}")
-                    print(print(f"badtxt[0]: {badtxt[0]}"))
-                    cmdret = runfuzzoptions(cmd, badtxt[0], 0)
-                    ret = detect_crash(cmdret, payload)
-                    if ret < 0:
-                        generate_number_keys_dictionary(path, ret)
-                        log.info('Found vulnerability on fuzzing menu then large file!')
-                        return ret
+                print(f"test3badtxt: {badtxt}")
+                print(f"badtxt at payload : {badtxt}")
+                print(print(f"badtxt[0]: {badtxt[0]}"))
+                cmdret = runfuzzoptions(cmd, badtxt[0], 0)
+                ret = detect_crash(cmdret, payload)
+                if ret < 0:
+                    generate_number_keys_dictionary(path, ret)
+                    log.info('Found vulnerability on fuzzing menu then large file!')
+                    return ret
 
 
             if not compare_path_ret(path):

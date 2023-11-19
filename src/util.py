@@ -16,6 +16,20 @@ def runfuzz(cmd, bad_input):
     except subprocess.CalledProcessError as e:
         pass
 
+def runfuzzsingleoption(cmd, bad_input):
+    payload = ""
+    for all in bad_input[0]:
+        payload += f"{all}\n"
+    
+    for all in bad_input[1:]:
+        payload += f"{all}"
+
+    try:
+        result = subprocess.run(cmd, input=payload, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        return result
+    except subprocess.CalledProcessError as e:
+        pass
+
 def runfuzzoptions(cmd, bad_input, OPTION):
     
     try:
@@ -32,7 +46,7 @@ def runfuzzoptions(cmd, bad_input, OPTION):
         print(bad_input[0])
         input = "\n".join(bad_input[0])
         input += f"\n{bad_input[1]}\n"
-        print(f"input: {input}")
+        print(f"input: [{input}]")
         result = subprocess.run(cmd, input=input, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         print(result)
         return result
