@@ -7,9 +7,6 @@ from util import usage, curr_time_taken
 from payloads import *
 from checktype import *
 
-# number of processes to start
-N_ITER = 10
-
 if __name__ == '__main__':
 
     # Check valid input

@@ -1,11 +1,11 @@
 import subprocess
 
-'''
-Checks the file type of a binary
-
-Return: String of file format
-'''
 def check_type(sample_binary_str):
+    '''
+    Checks the file type of a binary
+
+    Return: String of file format
+    '''
     cmd = ['file', sample_binary_str]
     ret = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)
 
