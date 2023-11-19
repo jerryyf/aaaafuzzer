@@ -269,18 +269,14 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         # test nested menus
         for i in range(4):
             inp.append(each)
-            print(f"INP: {inp}")
             for all in options:
                 all[0] = inp
-            print(f"OPTIONNNNL: {options}")
-            print(options)
+
             for any in options:
                 any[0] = inp
                 payload = 'A'*10000
-                print(f"any: {any}")
                 cmdret = runfuzzsingleoption(cmd, any)
                 ret = detect_crash(cmdret, payload)
-                print(cmdret)
                 if ret < 0:
                     return ret
 
@@ -300,61 +296,30 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
                 if nextres == False:
                     check = 1
                     inp.pop()
-                    print(f"falseinp: {inp}")
                     tmp.pop()
                     tmp.pop()
-                    print(f"TMP: {tmp}")
 
                     options.append(tmp)
                     skip = 1
-                    print(f"options: {options}")
                     break
-                print(f"testres: {nextres}")
 
                 options.append(tmp)
-
-                print(f"options: {options}")
                 
                 value = f"{ret}"
-                # print(tmp.append("wtfwtf"))
                 break
-            
-            print(f"\n HERE INP: {inp}")
-            print(f"HERE menutmp: {options}")
+
             for each in options:
                 each[0] = inp
-            
-            # print(f"OPTIONS: {options}")
-            
-                # print(f"WTFWTFWT: {any}")
             
             check = 1
             break
         for any in options:
             payload = 'A'*10000
-            print(f"any: {any}")
             cmdret = runfuzzoptions(cmd, any, 0)
             ret = detect_crash(cmdret, payload)
-            print(cmdret)
             if ret < 0:
                 return ret
         
-        # payload = 'B'*10000
-        # cmdret = runfuzz(cmd, payload)
-        # ret = detect_crash(cmdret, payload)
-        # if ret < 0:
-        #     return ret
-        # for each in options:
-        #     # payload = PAD*10000
-        #     cmdret = runfuzzoptions(cmd, each, 1)
-        #     ret = detect_crash(cmdret, payload)
-        #     if ret < 0:
-        #         return ret
-
-    
-    print(f"HEREEEE+++++++++++++++++++")
-    # print(path)
-    # print(options)
 
     for each in options:
         index = 0
@@ -368,9 +333,6 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
                 badtxt = []
                 badtxt.append(each)
 
-                print(f"test3badtxt: {badtxt}")
-                print(f"badtxt at payload : {badtxt}")
-                print(print(f"badtxt[0]: {badtxt[0]}"))
                 cmdret = runfuzzoptions(cmd, badtxt[0], 0)
                 ret = detect_crash(cmdret, payload)
                 if ret < 0:
@@ -384,7 +346,6 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
                 cmdret = runfuzz(cmd, badtxt)
                 ret = detect_crash(cmdret, badtxt)
                 if ret < 0:
-                    # value = f"{badtxt}; {ret}"
                     generate_number_keys_dictionary(path, ret)
                     log.info('Found vulnerability on empty file!')
                     return ret
@@ -395,14 +356,10 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
                 cmdret = runfuzz(cmd, badtxt)
                 ret = detect_crash(cmdret, badtxt)
                 if ret < 0:
-                    # value = f"{badtxt}; {ret}"
                     generate_number_keys_dictionary(path, ret)
                     log.info('Found vulnerability on large file!')
                     return ret
             
-            # create a fuzzing menu, get list options and fuzz each in list with large file
-            # ASSUME MENU OPTION is eitheer int[1, 2, 3, 4] or [a, b, c, d...]
-
 
             if not compare_path_ret(path):
                 # try known ints
@@ -500,11 +457,9 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
                 break
 
             nth_line = read_index_line(index, sample_input_path)
-            print(nth_line)
             cmdret = runfuzz(cmd, nth_line)
             ret = detect_crash(cmdret, nth_line)
             value = f"{nth_line}; {ret}"
-            print(path)
             path[index + 1] = ret
         return ret
 
@@ -513,26 +468,6 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
 
     Returns: the return code of the binary
     '''
-    # def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
-    #     cmd = f'{binary_file}'
-    #     # read file from beginning
-    #     with open(sample_file_str, 'r') as f:
-    #         f.seek(0)
-    #         payload = f.read()
-    #     # grab the root element from payload and copy all subchild 
-    #     root = ET.fromstring(payload)
-    #     head = copy.deepcopy(root)
-    #     # append child elements into payload
-    #     for i in range(FUZZ_NUM):
-    #         tail = copy.deepcopy(head)
-    #         root.append(tail)
-    #         bad = ET.tostring(root).decode()
-    #         cmdret = runfuzz(cmd, bad)
-    #         ret = detect_crash(cmdret, bad)
-    #         if ret < 0:
-    #             return ret
-
-    #     return ret
 
     def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
         try:
@@ -617,59 +552,6 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             log.error(f"Unexpected error during XML fuzzing: {e}", exc_info=True)
             return -1
 
-
-
-
-
-# def fuzz_xml(binary_file, sample_file_str) -> int:
-#     try:
-#         cmd = f'{binary_file}'
-
-#         # try empty xml 
-#         badtxt = empty_xml()
-#         cmdret = runfuzz(cmd, badtxt)
-#         ret = detect_crash(cmdret, badtxt)
-#         if ret < 0:
-#             log.info(f"Found vulnerability on empty xml!...")
-#             return ret
-
-#         # try nested xml tags
-#         badtxt = nested_tags_xml()
-#         cmdret = runfuzz(cmd, badtxt)
-#         ret = detect_crash(cmdret, badtxt)
-#         if ret < 0:
-#             log.info(f"Found vulnerability on nested xml tags!...")
-#             return ret
-
-#         # try tested xml contents
-#         badtxt = generate_nested_contents(sample_file_str)
-#         cmdret = runfuzz(cmd, badtxt)
-#         ret = detect_crash(cmdret, badtxt)
-#         if ret < 0:
-#             log.info(f"Found vulnerability on nested content xml!...")
-#             return ret
-
-#         # try fuzz child tags
-#         ret = fuzz_child_tags(binary_file, sample_file_str, 100)
-#         if ret < 0:
-#             log.info(f"Found vulnerability on fuzzing child xml tags!...")
-#             return ret
-
-#         # try fuzz xml attributes
-#         form_string_chars = ['%s', '%d', '%p', '%x', '$', '<', PAD*100]
-#         for each in form_string_chars:
-#             badtxt =  fuzz_attri_xml(sample_file_str, each)
-#             cmdret = runfuzz(cmd, badtxt)
-#             ret = detect_crash(cmdret, badtxt)
-#             if ret < 0:
-#                 log.info(f"Found vulnerability on fuzzing xml attributes!...")
-#                 return ret
-
-#         return ret
-#     except ET.ParseError as e:
-#         # print(f"====================================")
-#         pass
-    
 
 
 def fuzz_jpg(binary:str, sample_input_path:str) -> int:

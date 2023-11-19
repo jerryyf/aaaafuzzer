@@ -199,7 +199,6 @@ def get_num_menu_list():
 def get_payload_length(bad_input) -> int:
     payload_length = len(bad_input)
     payload_length += len(bad_input[0]) - 1
-    print(f"payload len: {payload_length}")
     return payload_length
 
 

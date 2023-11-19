@@ -43,12 +43,9 @@ def runfuzzoptions(cmd, bad_input, OPTION):
             result = subprocess.run(cmd, input=input, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             return result
 
-        print(bad_input[0])
         input = "\n".join(bad_input[0])
         input += f"\n{bad_input[1]}\n"
-        print(f"input: [{input}]")
         result = subprocess.run(cmd, input=input, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        print(result)
         return result
     
     except subprocess.CalledProcessError as e:
