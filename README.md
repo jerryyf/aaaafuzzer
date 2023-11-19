@@ -117,12 +117,13 @@ an idea to create a front-end where users are able to drop binary files in,
 and our fuzzer would run, attempting to find vulnerabilities. Found vulnerabilites
 would then be printed into a file, which would then be given to the user. 
 
-We were able to implement a simple version of code coverage. However, we did not have
-time to integrate this with our fuzzer, which would greatly increase the efficiency of our 
-fuzzing through coverage based mutation, which would ensure that all paths are covered. 
-Being able to throughly test the whole program through coverage will give
-the greatest chance of finding security vulnerabilities and logic errors. 
-It also speeds up the fuzzing process it will allow the fuzzer to focus more
-on finding new paths rather then revisiting similar paths. Thus, one major 
-improvement would be to implement a more refined and advanced version of code coverage.
+We were able to implement a simple version of code coverage that explores all the 
+possible paths. This allows us to ensure that most if not all vulnerabilities are 
+discovered. However, the implementation was complicated and may be confusing. A welcome 
+improvement would be to add multithreading. Through multithreading, we will be able 
+to enhance the performance and efficiency of the fuzzer. With this, we would be able
+to run more fuzzing techniques within the same amount of time. Additionally, 
+multithreading will improve the implementation of code coverage by having a dedicated
+thread that monitors and tracks the code coverage of binaries more accurately. 
+
 
