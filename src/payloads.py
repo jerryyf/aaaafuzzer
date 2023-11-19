@@ -162,11 +162,100 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     value = f"{ret}"
     path[1] = value
     
+    # try empty file
+    badtxt = empty_str()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret < 0:
+        log.info('Found vulnerability on empty file!')
+        return ret
+
+    # try large file
+    badtxt = PAD * 10000
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret < 0:
+        log.info('Found vulnerability on large file!')
+        return ret
+    
+    # try known ints
+    known_ints = [-1, 0, 127, 256, 1024, 65536, MAX_INT-1, MAX_INT]
+    for line in lines:
+        for i in known_ints:
+            badtxt = line + str(i)
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                log.info('Found vulnerability on known ints!')
+                return ret
+
+    # try repeating sample input
+    badtxt = repeat_sample_input(content, 10)
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret < 0:
+        log.info('Found vulnerability on repeated input!')
+        return ret
+
+    # try bit flipping whole file
+    badtxt = random_char_flip(content)
+    for i in range(ITER):
+        badtxt = random_char_flip(badtxt)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info('Found vulnerability on bit flips!')
+            return ret
+
+    # try bit flipping each line
+    for line in lines:
+        for i in range(len(line)):
+            badtxt = bit_flip(content, i)
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+            if ret < 0:
+                log.info('Found vulnerability on bit flips!')
+                return ret
+
+    for line in lines:
+        bitflips = walking_bit_flip(line, 16) # First do 16 bit flips
+        for i in range(len(bitflips)):
+            # Assume the first line is password - TODO detect output change
+            badtxt = line + bitflips[i]
+
+            cmdret = runfuzz(cmd, badtxt)
+            ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info('Found vulnerability on bit flips!')
+            return ret
+
+    # random mutations
+    for i in range(ITER):
+        badtxt = random_char_flip(content)
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info('Crashed with random char flip!')
+            return ret
+
+    # random strings
+    for i in range(ITER):
+        badtxt = random_str()
+        cmdret = runfuzz(cmd, badtxt)
+        ret = detect_crash(cmdret, badtxt)
+        if ret < 0:
+            log.info('Crashed with random string!')
+            return ret
+
+    # # return status would be 0 here
+    # return ret
+
+
     # generate menu options
     letter_list = get_char_menu_list()
     option_list = get_num_menu_list()
-    # for each in letter_list:
-    #     option_list.append(each)
+    for each in letter_list:
+        option_list.append(each)
 
     # working for multiple menu
     MANYMENU = 0
@@ -184,13 +273,23 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             for all in options:
                 all[0] = inp
             print(f"OPTIONNNNL: {options}")
+            print(options)
+            for any in options:
+                any[0] = inp
+                payload = 'A'*10000
+                print(f"any: {any}")
+                cmdret = runfuzzsingleoption(cmd, any)
+                ret = detect_crash(cmdret, payload)
+                print(cmdret)
+                if ret < 0:
+                    return ret
 
             res = runfuzzoptions(cmd, inp, 1)
             if res.returncode == 0:
                 tmp = []
 
                 tmp.append(inp)
-                payload = PAD * 100
+                payload = PAD * 10000
                 tmp.append(payload)
                 testtmp = tmp
                 testtmp.append("wtfwtf")
@@ -225,15 +324,8 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             for each in options:
                 each[0] = inp
             
-            print(f"OPTIONS: {options}")
-            for any in options:
-                payload = 'A'*10000
-                print(f"any: {any}")
-                cmdret = runfuzzsingleoption(cmd, any)
-                ret = detect_crash(cmdret, payload)
-                print(cmdret)
-                if ret < 0:
-                    return ret
+            # print(f"OPTIONS: {options}")
+            
                 # print(f"WTFWTFWT: {any}")
             
             check = 1
