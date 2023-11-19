@@ -7,9 +7,6 @@ from util import usage, curr_time_taken
 from payloads import *
 from checktype import *
 
-# number of processes to start
-N_ITER = 10
-
 if __name__ == '__main__':
 
     # Check valid input
@@ -30,7 +27,6 @@ if __name__ == '__main__':
     sample_file_str = sys.argv[2]
 
     print(f'AAAAAAAAfuzzing {binary_file}')
-
 
     match check_type(sample_file_str):
         case 'plaintext':

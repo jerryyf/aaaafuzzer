@@ -1,26 +1,47 @@
 import sys
 import time
 import subprocess
+import xml
 
 def usage():
+    '''
+    Prints invalid input format message and exits
+    '''
     print(f"Invalid input format! Usage: ./fuzzer binary input.txt")
     sys.exit(1)
 
 def curr_time_taken(init_time) -> float:
+    '''
+    Return: Time difference between current time and recorded time
+    '''
     return time.time() - init_time
 
 def runfuzz(cmd, bad_input):
+    '''
+    Spawn a process that runs a fuzzer using bad_input
+
+    Return: Check value of the process
+    '''
     try:
         result = subprocess.run(cmd, input=bad_input, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         return result
     except subprocess.CalledProcessError as e:
         pass
 
+def runfuzz_bin(cmd:str, bad_input:bytes):
+    '''
+    Wrapper for spawning process that takes binary input
+
+    Return: Check value of the process
+    '''
+    return subprocess.run(cmd, input=bad_input, stdout=subprocess.PIPE)
+
 def runfuzzsingleoption(cmd, bad_input):
     payload = ""
     for all in bad_input[0]:
         payload += f"{all}\n"
     
+
     for all in bad_input[1:]:
         payload += f"{all}"
 
@@ -32,6 +53,7 @@ def runfuzzsingleoption(cmd, bad_input):
 
 def runfuzzoptions(cmd, bad_input, OPTION):
     
+
     try:
         # if menu num more than 1, fuzz for menu
         if OPTION == 1:
