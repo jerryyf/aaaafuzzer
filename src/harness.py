@@ -20,8 +20,17 @@ def detect_crash(proc:CompletedProcess[str], input:str) -> int:
             outf.write(input)
     # in any case, add to list of outputs and log
     stdouts.append(proc.stdout)
-    logging.info('Input tried:\n' + input)
-    logging.info('Program output:\n' + proc.stdout)
+    try:
+        logging.info('Input tried:\n' + input)
+    except:
+        logging.info('Binary input tried:')
+        logging.info(bytearray(input)[:4])
+    try:
+        logging.info('Program output:\n' + proc.stdout)
+    except:
+        logging.info('Binary program output:')
+        logging.info(bytearray(input)[:4])
+
     return proc.returncode
 
 def max_runtime_kill(curr_time) -> bool:
@@ -33,9 +42,13 @@ def max_runtime_kill(curr_time) -> bool:
         sys.exit()
 
 def detect_codeflow_change_json(binary:str, jsondict:dict):
+    '''
+    Takes in a binaryfile and detects if there were any codeflow changes
+    '''
     payload = []
     ret_status = []
     cmd = f'{binary}'
+    cycle = 0
     while (cycle <= 2):
         cyclic_int = int(math.pow(10, cycle))
         
@@ -72,6 +85,6 @@ def detect_codeflow_change_json(binary:str, jsondict:dict):
             prev_Cyc = cyclic_int
             curr_Cyc = int(math.pow(10, cycle - 1))
             log.info(f'code flow changed - {cycle - 1} -> {cycle}')
-            break;
+            break
         
         cycle += 1

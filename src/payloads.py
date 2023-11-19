@@ -14,7 +14,11 @@ logging.basicConfig(filename='/tmp/aaaalog', level=logging.INFO, format='[%(leve
 ITER = 200
 
 def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
-    # read file from beginning
+    '''
+    Read the file from the beginning and runfuzz line by line
+
+    Return: Check value of whether or not fuzzer caused a crash
+    '''
     binary_input.seek(0)
     payload = binary_input.readline()
 
@@ -25,7 +29,11 @@ def fuzz_rows(binary_file, binary_input, sample_file_str) -> int:
     return detect_crash(cmdret, sample_file_str)
 
 def fuzz_colns(binary_file, binary_input, sample_file_str):
-    # read file from begining
+    '''
+    Read the file from the beginning, and fuzz column by column
+
+    Return: Check value of whether or not fuzzer caused a crash
+    '''
     binary_input.seek(0)
     lines = [line.rstrip() for line in binary_input]
 
@@ -36,7 +44,7 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
 
         # try fuzzing first column
         for i in range(0, len(first_row)):
-            first_row[i] = PAD * 15 # TODO not working with larger ints - not black box
+            first_row[i] = PAD * 15 
 
         # join the modified contents
         badline = ",".join(first_row)
@@ -47,6 +55,11 @@ def fuzz_colns(binary_file, binary_input, sample_file_str):
     return detect_crash(cmdret, sample_file_str)
 
 def fuzz_add(binary_file, binary_input, sample_file_str):
+    '''
+    Read the file, mutliply the initial input
+
+    Return: 0 if successful, other crash
+    '''
     binary_input.seek(0)
     payload = binary_input.readline().strip()
 
@@ -61,6 +74,11 @@ def fuzz_add(binary_file, binary_input, sample_file_str):
     return 0
     
 def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
+    '''
+    Read the file, fuzz rows, columns and increase input
+
+    Return: Check value of whether or not fuzzer caused a crash
+    '''
     ret = fuzz_rows(binary_file, binary_input, sample_file_str)
     if ret < 0:
         log.info(f"Found vulnerability on fuzzing rows!...")
@@ -77,13 +95,14 @@ def fuzz_csv(binary_file, binary_input, sample_file_str) -> int:
         return ret
     return ret
 
-
 def fuzz_json(binary:str, sample_input_path:str) -> bool:
     '''
-    Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
+    Generate and run a JSON bad.txt against binary. Log, write the bad input to bad.txt 
+    and exit if program exits with a non-zero status.
 
-    Returns: the return code of the binary
+    Return: Check value of whether or not fuzzer caused a crash
     '''
+    
     cmd = f'{binary}'
 
     with open(sample_input_path, 'r') as inf:
@@ -129,7 +148,7 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     '''
     Fuzz plaintext with mutated inputs.
 
-    Returns: return code of binary
+    Return: Check value of whether or not fuzzer caused a crash
     '''
     cmd = f'{binary}'
 
@@ -175,8 +194,8 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
         log.info('Found vulnerability on repeated input!')
         return ret
 
-    # try bit flipping whole file
-    badtxt = random_char_flip(content)
+    # try bit flipping whole file, mutating ITER amount of times
+    badtxt = content
     for i in range(ITER):
         badtxt = random_char_flip(badtxt)
         cmdret = runfuzz(cmd, badtxt)
@@ -185,10 +204,11 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
             log.info('Found vulnerability on bit flips!')
             return ret
 
-    # try bit flipping each line
+    # try bit flipping each line, constantly mutating ITER amount of times
+    badtxt = content
     for line in lines:
-        for i in range(len(line)):
-            badtxt = bit_flip(content, i)
+        for i in range(ITER):
+            badtxt = random_char_flip(badtxt)
             cmdret = runfuzz(cmd, badtxt)
             ret = detect_crash(cmdret, badtxt)
             if ret < 0:
@@ -229,12 +249,12 @@ def fuzz_plaintext(binary:str, sample_input_path:str) -> int:
     return ret
 
 
-'''
-Generate and run a XML bad.txt against binary. Log, write the bad input to bad.txt and exit if program exits with a non-zero status.
-
-Returns: the return code of the binary
-'''
 def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
+    '''
+    Fuzzes the child tags of a XML binary file
+
+    Return: Check value of whether or not fuzzer caused a crash
+    '''
     cmd = f'{binary_file}'
     # read file from beginning
     with open(sample_file_str, 'r') as f:
@@ -255,10 +275,23 @@ def fuzz_child_tags(binary_file, sample_file_str, FUZZ_NUM) -> int:
 
     return ret
 
-
 def fuzz_xml(binary_file, sample_file_str) -> int:
+    '''
+    Generate and run a XML bad.txt against binary. Log and write the bad input to bad.txt and exit if 
+    program exits with a non-zero status.
+
+    Return: Check value of whether or not fuzzer caused a crash
+    '''
     cmd = f'{binary_file}'
 
+     # try empty xml 
+    badtxt = empty_newline()
+    cmdret = runfuzz(cmd, badtxt)
+    ret = detect_crash(cmdret, badtxt)
+    if ret < 0:
+        log.info(f"Found vulnerability on empty xml!...")
+        return ret
+    
     # try empty xml 
     badtxt = empty_xml()
     cmdret = runfuzz(cmd, badtxt)
@@ -285,6 +318,7 @@ def fuzz_xml(binary_file, sample_file_str) -> int:
 
     # try fuzz child tags
     ret = fuzz_child_tags(binary_file, sample_file_str, 100)
+    print(ret)
     if ret < 0:
         log.info(f"Found vulnerability on fuzzing child xml tags!...")
         return ret
@@ -305,7 +339,7 @@ def fuzz_jpg(binary:str, sample_input_path:str) -> int:
     '''
     Fuzz plaintext with mutated inputs.
 
-    Returns: return code of binary
+    Return: Check value of whether or not fuzzer caused a crash
     '''
     cmd = f'{binary}'
 
@@ -326,5 +360,17 @@ def fuzz_jpg(binary:str, sample_input_path:str) -> int:
     if ret < 0:
         log.info('Found vulnerability on large file!')
         return ret
+    
+    # try mutating file header randomly
+    badjpg = content
+    print(bytes(bytearray(badjpg)[:4]))
+    for i in range(ITER):
+        byte = mutate_file_header(badjpg)
+        # print(bytearray(badjpg[:4]))
+        cmdret = runfuzz_bin(cmd, byte)
+        ret = detect_crash(cmdret, byte)
+        if ret < 0:
+            return ret
+
     # return status would be 0 here
     return ret
